@@ -13,6 +13,9 @@ $RECYCLE.BIN/
 *.msi
 *.msm
 *.msp
+*.tlog
+[Dd]ebug
+{Rr]elease
 
 # =========================
 # Operating System Files
