@@ -87,9 +87,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AssemblyInfo.cpp" />
-    <ClCompile Include="Controller.cpp" />
+    <ClCompile Include="Earning.cpp" />
+    <ClCompile Include="EarningController.cpp" />
     <ClCompile Include="Entry.cpp" />
     <ClCompile Include="EntryController.cpp" />
+    <ClCompile Include="FormHelper.cpp" />
     <ClCompile Include="MCloneForms.cpp" />
     <ClCompile Include="EntriesUserControl.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -101,9 +103,11 @@
   <ItemGroup>
     <ClInclude Include="Controller.h" />
     <ClInclude Include="DebugOut.h" />
+    <ClInclude Include="Earning.h" />
+    <ClInclude Include="EarningController.h" />
     <ClInclude Include="Entry.h" />
     <ClInclude Include="EntryController.h" />
-    <ClInclude Include="Enums.h" />
+    <ClInclude Include="FormHelper.h" />
     <ClInclude Include="MainWindow.h">
       <FileType>CppForm</FileType>
     </ClInclude>
@@ -134,6 +138,9 @@
     <EmbeddedResource Include="EntriesUserControl.resx">
       <DependentUpon>EntriesUserControl.h</DependentUpon>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Controller.tcc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

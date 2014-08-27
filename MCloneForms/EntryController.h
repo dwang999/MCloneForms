@@ -16,7 +16,7 @@
 #include "Controller.h"
 
 
-class EntryController : public Controller
+class EntryController
 {
 	public:
 		EntryController(std::string profileName);
@@ -46,11 +46,12 @@ class EntryController : public Controller
 		void sortByAmount(bool descending);
 		bool backupExists();
 		bool deleteBackup();
-
+		
+		std::string getProfileName();
 		std::vector<Entry> getEntries();
 
 	private:
-		std::vector<Entry> entries;
+		Controller<Entry> controller;
 
 };
 

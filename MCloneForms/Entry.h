@@ -22,16 +22,16 @@ class Entry
 		std::string subCategory;
 		std::string description;
 		float amount;
+		static const int NUMOFMEMBERVARIABLES = 5;
 		
 
 		
 	private:
 		Entry();		
-
+		
 
 };
 
 
-static const int NUMOFVARIABLESINENTRY = 5;
 
 #endif

@@ -5,6 +5,7 @@
 #include <regex>
 #include "EntryController.h"
 #include "String.h"
+#include "FormHelper.h"
 
 using namespace System;
 using namespace System::ComponentModel;
@@ -39,7 +40,7 @@ namespace MCloneForms {
 			entryController = new EntryController(profileName);
 			if (entryController -> backupExists())
 			{
-				if (showYesNoMessage("MCloneForm Load Backup", "MCloneForm did not close properly. Do you wish to load data from previous session?"))
+				if (FormHelper::showYesNoMessage("MCloneForm Load Backup", "MCloneForm did not close properly. Do you wish to load data from previous session?"))
 					entryController -> loadBackup();
 				else
 				{
@@ -296,39 +297,46 @@ namespace MCloneForms {
 #pragma region Events
 		// private events
 	private: System::Void addButton_Click(System::Object^  sender, System::EventArgs^  e) {
-				 System::Windows::Forms::Button^ addButton = (System::Windows::Forms::Button^) sender;
-				 if (addButton -> Text == "Add")
+				 if (dataGridView -> ReadOnly)
 				 {
-					 toggleAddTextBoxes();
-					 changeDisplayAddButton(0, 100, -100);
-					 addButton -> Text = "OK";
+					 System::Windows::Forms::Button^ addButton = (System::Windows::Forms::Button^) sender;
+					 if (addButton -> Text == "Add")
+					 {
+						 toggleAddTextBoxes();
+						 changeDisplayAddButton(0, 100, -100);
+						 addButton -> Text = "OK";
+					 }
+					 else
+					 {
+
+						 // Validate Input
+						 if(validateInputsAdd(categoryAdd -> Text, amountAdd -> Text))
+						 {
+							 float amount;
+							 amount = stof(convertSystemToSTDString(amountAdd -> Text));
+							 // Add row to data grid view
+							 int newRowIndex = dataGridView -> Rows -> Add();
+							 setDataGridRowColumns(dataGridView -> Rows[newRowIndex], dateTimePicker -> Value.ToString("MMM dd, yyyy"), categoryAdd -> Text, subCategoryAdd -> Text, descriptionAdd -> Text, amount);
+
+							 tm tm = {0};
+							 convertStringToTM(convertSystemToSTDString(dateTimePicker -> Value.ToString("MM/dd/yyyy")), tm);
+							 // Auto save Entry Controller
+							 entryController -> add(tm, convertSystemToSTDString(categoryAdd -> Text), 
+								 convertSystemToSTDString(subCategoryAdd -> Text), convertSystemToSTDString(descriptionAdd -> Text), amount);
+							 entryController->autoSave();
+
+							 changeDisplayAddButton(0, -100, 100);
+							 toggleAddTextBoxes();	
+							 resetAddTextBoxes();
+							 sortByDate();
+							 addButton -> Text = "Add";
+						 }
+
+					 }
 				 }
 				 else
 				 {
-
-					 // Validate Input
-					 if(validateInputsAdd(categoryAdd -> Text, amountAdd -> Text))
-					 {
-						 float amount;
-						 amount = stof(convertSystemToSTDString(amountAdd -> Text));
-						 // Add row to data grid view
-						 int newRowIndex = dataGridView -> Rows -> Add();
-						 setDataGridRowColumns(dataGridView -> Rows[newRowIndex], dateTimePicker -> Value.ToString("MMM dd, yyyy"), categoryAdd -> Text, subCategoryAdd -> Text, descriptionAdd -> Text, amount);
-
-						 tm tm = {0};
-						 convertStringToTM(convertSystemToSTDString(dateTimePicker -> Value.ToString("MM/dd/yyyy")), tm);
-						 // Auto save Entry Controller
-						 entryController -> add(tm, convertSystemToSTDString(categoryAdd -> Text), 
-							 convertSystemToSTDString(subCategoryAdd -> Text), convertSystemToSTDString(descriptionAdd -> Text), amount);
-						 entryController->autoSave();
-
-						 changeDisplayAddButton(0, -100, 100);
-						 toggleAddTextBoxes();	
-						 resetAddTextBoxes();
-						 sortByDate();
-						 addButton -> Text = "Add";
-					 }
-
+					 FormHelper::showErrorMessage("Edit Mode Active","Cannot add entry while edit mode is active.");
 				 }
 			 }
 	private: System::Void editButton_Click(System::Object^  sender, System::EventArgs^  e) {
@@ -386,7 +394,7 @@ namespace MCloneForms {
 							 time_t tt = entryController->getDate(e->RowIndex);
 							 strftime(buff, 20,"%b %d, %Y", localtime(&tt));
 							 dataGridView -> Rows[e->RowIndex] -> Cells[e->ColumnIndex] -> Value = convertToSystemString(buff); 
-							 showErrorMessage("Edit Error", "Date value is not a valid Date");
+							 FormHelper::showErrorMessage("Edit Error", "Date value is not a valid Date");
 						 }
 					 }
 					 else if (columnName == "Category")
@@ -396,7 +404,7 @@ namespace MCloneForms {
 						 else
 						 {
 							 dataGridView -> Rows[e->RowIndex] -> Cells[e->ColumnIndex] -> Value = convertToSystemString(entryController->getCategory(e->RowIndex)); 
-							 showErrorMessage("Edit Error", "Category must not be an empty string");
+							 FormHelper::showErrorMessage("Edit Error", "Category must not be an empty string");
 						 }
 					 }
 					 else if (columnName == "SubCategory")
@@ -421,7 +429,7 @@ namespace MCloneForms {
 						 else
 						 {
 							 dataGridView -> Rows[e->RowIndex] -> Cells[e->ColumnIndex] -> Value = convertToSystemString(convertToCurrencyString(entryController->getAmount(e->RowIndex))); 
-							 showErrorMessage("Edit Error", "Amount must be a non-empty all numeral value");
+							 FormHelper::showErrorMessage("Edit Error", "Amount must be a non-empty all numeral value");
 						 }
 					 }
 					 else
@@ -463,6 +471,9 @@ namespace MCloneForms {
 				 {
 					 entryController -> sortByAmount(desc);
 				 }
+				 else if (columnName  == "Remove")
+				 {
+				 }
 				 else
 				 {
 					 throw std::runtime_error("MainWindow::dataGridView_ColumnHeaderMouseClick : Column header \"" + columnName + "\" not found");
@@ -493,14 +504,14 @@ namespace MCloneForms {
 			if (!std::regex_match(amountSTD, std::regex("^[0-9]+")) || amountSTD.empty())
 			{
 				errors++; 
-				showErrorMessage("Add Error", "Amount must be a non-empty all numeral value");
+				FormHelper::showErrorMessage("Add Error", "Amount must be a non-empty all numeral value");
 			}
 
 
 			if (convertSystemToSTDString(category).empty())
 			{
 				errors++; 
-				showErrorMessage("Add Error", "Category must not be empty");
+				FormHelper::showErrorMessage("Add Error", "Category must not be empty");
 			}
 
 			if (errors > 0)
@@ -555,25 +566,11 @@ namespace MCloneForms {
 			row -> Cells["Amount"] -> Value = convertToSystemString(convertToCurrencyString(amount));
 		}
 
-		void showErrorMessage(System::String^ title, System::String^ text)
-		{
-			Windows::Forms::MessageBox::Show(text, title, MessageBoxButtons::OK, MessageBoxIcon::Error);
-		}
-
-		bool showYesNoMessage(System::String^ title, System::String^ text)
-		{
-			System::Windows::Forms::DialogResult dialogResult =  Windows::Forms::MessageBox::Show(text, title, MessageBoxButtons::YesNo, MessageBoxIcon::Exclamation);
-			if(dialogResult == System::Windows::Forms::DialogResult::Yes)
-				return true;
-			else
-				return false;
-		}
-
 		void resetDividers(std::string columnName)
 		{
 			for (int i = 0; i < dataGridView -> RowCount; i++)
 			{
-				dataGridView->Rows[i] -> DividerHeight = 1;
+				dataGridView->Rows[i] -> DividerHeight = 0;
 				if (i < dataGridView -> RowCount - 1)
 				{
 
@@ -620,6 +617,9 @@ namespace MCloneForms {
 							dataGridView->Rows[i] -> DividerHeight = 3;
 						}
 					}
+					else if (columnName  == "Remove")
+					{
+					}
 					else
 					{
 						throw std::runtime_error("MainWindow::resetDividers : Column header \"" + columnName + "\" not found");
@@ -637,14 +637,14 @@ namespace MCloneForms {
 			{
 				if (entryController -> backupExists())
 				{
-					if(showYesNoMessage("Entries Not Saved!","Entries for profile " + convertToSystemString(entryController -> getProfileName()) + " have not been saved. Do you wish to save changes and exit?"))
+					if(FormHelper::showYesNoMessage("Entries Not Saved!","Entries for profile " + convertToSystemString(entryController -> getProfileName()) + " have not been saved. Do you wish to save changes and exit?"))
 					{
 						entryController -> save();
 						return true;
 					}
 					else
 					{
-						if(showYesNoMessage("Continue Exit","Do you want to discared changes for " + convertToSystemString(entryController -> getProfileName()) + "'s Entries and exit the window?"))
+						if(FormHelper::showYesNoMessage("Continue Exit","Do you want to discared changes for " + convertToSystemString(entryController -> getProfileName()) + "'s Entries and exit the window?"))
 						{
 							entryController -> deleteBackup();
 							return true;
