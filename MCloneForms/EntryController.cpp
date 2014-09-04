@@ -3,136 +3,6 @@
 #include "stdafx.h"
 #include "EntryController.h"
 
-namespace{
-
-
-	bool sortEntryByDateDesc(Entry i, Entry j) 
-	{ 
-		return difftime(i.date, j.date) > 0; 
-	}
-	bool sortEntryByDateAsc(Entry i, Entry j) 
-	{ 
-		return difftime(i.date, j.date) < 0; 
-	}
-
-	bool sortEntryByCategoryDesc(Entry i, Entry j) 
-	{ 
-		return i.category > j.category; 
-	}
-	bool sortEntryByCategoryAsc(Entry i, Entry j) 
-	{ 
-		return i.category < j.category; 
-	}
-
-	bool sortEntryBySubCategoryDesc(Entry i, Entry j) 
-	{ 
-		return i.subCategory > j.subCategory; 
-	}
-	bool sortEntryBySubCategoryAsc(Entry i, Entry j) 
-	{ 
-		return i.subCategory < j.subCategory; 
-	}
-
-	bool sortEntryByDescriptionDesc(Entry i, Entry j) 
-	{ 
-		return i.description > j.description; 
-	}
-	bool sortEntryByDescriptionAsc(Entry i, Entry j) 
-	{ 
-		return i.description < j.description; 
-	}
-
-	bool sortEntryByAmountDesc(Entry i, Entry j) 
-	{ 
-		return i.amount > j.amount; 
-	}
-	bool sortEntryByAmountAsc(Entry i, Entry j) 
-	{ 
-		return i.amount < j.amount; 
-	}
-
-	
-
-	
-	void parseTokens(Controller<Entry> *entry, std::string str)
-	{	
-		// Get Tokens
-		std::string delim = "/";
-		std::vector<std::string> tokens;
-		tokens.reserve(Entry::NUMOFMEMBERVARIABLES);
-		unsigned int delimPos = str.find(delim);
-		int start = 0;
-		while (delimPos != std::string::npos)
-		{
-			std::string token = str.substr(start, delimPos - start);
-			start = delimPos + 1;
-			delimPos = str.find(delim, start);
-			tokens.push_back(token);
-		}
-
-		if (tokens.size() != Entry::NUMOFMEMBERVARIABLES)
-		{
-			throw std::runtime_error("EntryController::parseTokens : Incorrect number of variables in entrys");
-		}
-
-		// Parse tokens 
-		std::time_t date;
-		std::string category;
-		std::string subCategory;
-		std::string description;
-		float amount;
-
-		for (int i = 0; i < Entry::NUMOFMEMBERVARIABLES; i++)
-		{
-			switch (i)
-			{
-			case 0: // date
-				date = std::stoi(tokens[i]);
-				break;
-			case 1: // category
-				category = tokens[i];
-				break;
-			case 2: // sub-category
-				subCategory = tokens[i];
-				break;
-			case 3: // description
-				description = tokens[i];
-				break;
-			case 4: // amount
-				amount = std::stof(tokens[i]);
-
-				break;
-			}
-		}
-
-		entry -> add(Entry(date, category, subCategory, description, amount));
-	}
-
-	void loadController(Controller<Entry> *controller, std::string fileName)
-	{		
-		std::fstream fs;
-		std::string line;
-
-		fs.open(fileName, std::fstream::in);
-
-
-		if (fs.is_open())
-		{
-			while(!fs.eof())
-			{
-				std::getline(fs, line);
-				if (!line.empty())
-					parseTokens(controller , line);
-
-			}
-			fs.close();
-		}
-	}
-
-
-
-}
-
 // Constructors
 
 EntryController::EntryController(std::string profileName) : 
@@ -144,21 +14,36 @@ std::vector<Entry> EntryController::getEntries()
 	return controller.vectorT;
 }
 
-void EntryController::add(time_t date, std::string category, std::string subCategory, 
-						  std::string description, float amount)
+int EntryController::add(time_t date, std::string category, std::string description, float amount)
 {
-	controller.add(Entry(date, category, subCategory, description, amount));
+	int id = controller.generateID();
+	controller.add(Entry(id, date, category, description, amount));
+	return id;
 }
 
 
-void EntryController::add(tm date, std::string category, std::string subCategory, 
-						  std::string description, float amount)
+int EntryController::add(tm date, std::string category, std::string description, float amount)
 {
-	controller.add(Entry(mktime(&date), category, subCategory, description, amount));
+	int id = controller.generateID();
+	controller.add(Entry(id, mktime(&date), category, description, amount));
+	return id;
 }
 
-void EntryController::remove(int indexToRemove){
-	controller.remove(indexToRemove);
+void EntryController::remove(int id){
+	bool success = false;
+	for (size_t i = 0; i < controller.vectorT.size(); i++)
+	{
+		if (controller.vectorT[i].id == id)
+		{
+			controller.remove(i);
+			success = true;
+			break;
+		}
+	}
+
+	if (!success)
+		throw std::invalid_argument("EntryController::remove : id " + convertSystemToSTDString(id.ToString()) + " not found");
+
 }
 void EntryController::save(){
 	controller.save();
@@ -175,97 +60,113 @@ bool EntryController::deleteBackup(){
 	return controller.deleteBackup();
 }
 
-void EntryController::modifyDate(int index, tm date)
+void EntryController::modifyDate(int id, tm date)
 {
-	controller.vectorT[index].date = mktime(&date);
+	bool success = false;
+	for (Entry &entry : controller.vectorT)
+	{
+		if (entry.id == id)
+		{
+			entry.date = mktime(&date);
+			success = true;
+			break;
+		}
+	}
+
+	if (!success)
+		throw std::invalid_argument("EntryController::modifyDate : id " + convertSystemToSTDString(id.ToString()) + " not found");
 }
 
-void EntryController::modifyCategory(int index, std::string category)
+void EntryController::modifyCategory(int id, std::string category)
 {
-	controller.vectorT[index].category = category;
+	bool success = false;
+	for (Entry &entry : controller.vectorT)
+	{
+		if (entry.id == id)
+		{
+			entry.category = category;
+			success = true;
+			break;
+		}
+	}
+	if (!success)
+		throw std::invalid_argument("EntryController::modifyCategory : id " + convertSystemToSTDString(id.ToString()) + " not found");
 }
 
-void EntryController::modifySubCategory(int index, std::string subCategory)
+void EntryController::modifyDescription(int id, std::string description)
 {
-	controller.vectorT[index].subCategory = subCategory;
+	bool success = false;
+	for (Entry &entry : controller.vectorT)
+	{
+		if (entry.id == id)
+		{
+			entry.description = description;
+			success = true;
+			break;
+		}
+	}
+	if (!success)
+		throw std::invalid_argument("EntryController::modifyDescription : id " + convertSystemToSTDString(id.ToString()) + " not found");
 }
 
-void EntryController::modifyDescription(int index, std::string description)
+void EntryController::modifyAmount(int id, float amount)
 {
-	controller.vectorT[index].description = description;
+	bool success = false;
+	for (Entry &entry : controller.vectorT)
+	{
+		if (entry.id == id)
+		{
+			entry.amount = amount;
+			success = true;
+			break;
+		}
+	}
+	if (!success)
+		throw std::invalid_argument("EntryController::modifyAmount : id " + convertSystemToSTDString(id.ToString()) + " not found");
 }
 
-void EntryController::modifyAmount(int index, float amount)
-{
-	controller.vectorT[index].amount = amount;
-}
 
+time_t EntryController::getDate(int id){
+	for (Entry entry : controller.vectorT)
+	{
+		if (entry.id == id)
+			return entry.date;
+	}
 
-time_t EntryController::getDate(int index){
-	return controller.vectorT[index].date;
+	throw std::invalid_argument("EntryController::getDate : id " + convertSystemToSTDString(id.ToString()) + " not found");
 }
-std::string EntryController::getCategory(int index){
-	return controller.vectorT[index].category;
+std::string EntryController::getCategory(int id){
+	for (Entry entry : controller.vectorT)
+	{
+		if (entry.id == id)
+			return entry.category;
+	}
+	throw std::invalid_argument("EntryController::getCategory : id " + convertSystemToSTDString(id.ToString()) + " not found");
 }
-std::string EntryController::getSubCategory(int index){
-	return controller.vectorT[index].subCategory;
+std::string EntryController::getDescription(int id){
+	for (Entry entry : controller.vectorT)
+	{
+		if (entry.id == id)
+			return entry.description;
+	}
+	throw std::invalid_argument("EntryController::getDescription : id " + convertSystemToSTDString(id.ToString()) + " not found");
 }
-std::string EntryController::getDescription(int index){
-	return controller.vectorT[index].description;
-}
-float EntryController::getAmount(int index){
-	return controller.vectorT[index].amount;
+float EntryController::getAmount(int id){
+	for (Entry entry : controller.vectorT)
+	{
+		if (entry.id == id)
+			return entry.amount;
+	}
+	throw std::invalid_argument("EntryController::getAmount : id " + convertSystemToSTDString(id.ToString()) + " not found");
 }
 
 void EntryController::load()
 {
-	loadController(&controller, controller.fileName);
+	controller.loadController(controller.fileName);
 }
 void EntryController::loadBackup()
 {
-	loadController(&controller, controller.backupFileName);
-}
-
-void EntryController::sortByDate(bool descending)
-{
-	if (descending)
-		std::sort(controller.vectorT.begin(), controller.vectorT.end(), sortEntryByDateDesc);
-	else
-		std::sort(controller.vectorT.begin(), controller.vectorT.end(), sortEntryByDateAsc);
-
-}
-
-void EntryController::sortByCategory(bool descending)
-{
-	if (descending)
-		std::sort(controller.vectorT.begin(), controller.vectorT.end(), sortEntryByCategoryDesc);
-	else
-		std::sort(controller.vectorT.begin(), controller.vectorT.end(), sortEntryByCategoryAsc);
-}
-
-void EntryController::sortBySubCategory(bool descending)
-{
-	if (descending)
-		std::sort(controller.vectorT.begin(), controller.vectorT.end(), sortEntryBySubCategoryDesc);
-	else
-		std::sort(controller.vectorT.begin(), controller.vectorT.end(), sortEntryBySubCategoryAsc);
-}
-
-void EntryController::sortByDescription(bool descending)
-{
-	if (descending)
-		std::sort(controller.vectorT.begin(), controller.vectorT.end(), sortEntryByDescriptionDesc);
-	else
-		std::sort(controller.vectorT.begin(), controller.vectorT.end(), sortEntryByDescriptionAsc);
-}
-
-void EntryController::sortByAmount(bool descending)
-{
-	if (descending)
-		std::sort(controller.vectorT.begin(), controller.vectorT.end(), sortEntryByAmountDesc);
-	else
-		std::sort(controller.vectorT.begin(), controller.vectorT.end(), sortEntryByAmountAsc);
-
+	controller.loadController(controller.backupFileName);
 }
 
 std::string EntryController::getProfileName(){

@@ -14,36 +14,28 @@
 // MY CLASS INCLUDES
 #include "Entry.h"
 #include "Controller.h"
+#include "String.h"
 
 
 class EntryController
 {
 	public:
 		EntryController(std::string profileName);
-		void add(time_t date, std::string category, std::string subCategory, 
-			std::string description, float amount);
-		void add(tm date, std::string category, std::string subCategory, 
-			std::string description, float amount);
-		void remove(int indexToRemove);
+		int add(time_t date, std::string category, std::string description, float amount);
+		int add(tm date, std::string category, std::string description, float amount);
+		void remove(int id);
 		void save();
 		void autoSave();
 		void load();
 		void loadBackup();
-		void modifyDate(int index, tm date);
-		void modifyCategory(int index, std::string category);
-		void modifySubCategory(int index, std::string subCategory);
-		void modifyDescription(int index, std::string description);
-		void modifyAmount(int index, float amount);
-		time_t getDate(int index);
-		std::string getCategory(int index);
-		std::string getSubCategory(int index);
-		std::string getDescription(int index);
-		float getAmount(int index);
-		void sortByDate(bool descending);
-		void sortByCategory(bool descending);
-		void sortBySubCategory(bool descending);
-		void sortByDescription(bool descending);
-		void sortByAmount(bool descending);
+		void modifyDate(int id, tm date);
+		void modifyCategory(int id, std::string category);
+		void modifyDescription(int id, std::string description);
+		void modifyAmount(int id, float amount);
+		time_t getDate(int id);
+		std::string getCategory(int id);
+		std::string getDescription(int id);
+		float getAmount(int id);
 		bool backupExists();
 		bool deleteBackup();
 		

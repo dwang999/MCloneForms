@@ -80,6 +80,7 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Messaging" />
     <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Windows.Forms.DataVisualization" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
@@ -87,13 +88,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AssemblyInfo.cpp" />
+    <ClCompile Include="Budget.cpp" />
+    <ClCompile Include="BudgetController.cpp" />
     <ClCompile Include="Earning.cpp" />
     <ClCompile Include="EarningController.cpp" />
     <ClCompile Include="Entry.cpp" />
     <ClCompile Include="EntryController.cpp" />
     <ClCompile Include="FormHelper.cpp" />
     <ClCompile Include="MCloneForms.cpp" />
-    <ClCompile Include="EntriesUserControl.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -101,23 +103,29 @@
     <ClCompile Include="String.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Budget.h" />
+    <ClInclude Include="BudgetController.h" />
+    <ClInclude Include="BudgetsUserControl.h">
+      <FileType>CppControl</FileType>
+    </ClInclude>
     <ClInclude Include="Controller.h" />
+    <ClInclude Include="CueTextBox.h" />
     <ClInclude Include="DebugOut.h" />
     <ClInclude Include="Earning.h" />
     <ClInclude Include="EarningController.h" />
+    <ClInclude Include="EntriesUserControl.h">
+      <FileType>CppControl</FileType>
+    </ClInclude>
     <ClInclude Include="Entry.h" />
     <ClInclude Include="EntryController.h" />
     <ClInclude Include="FormHelper.h" />
     <ClInclude Include="MainWindow.h">
       <FileType>CppForm</FileType>
     </ClInclude>
-    <ClInclude Include="MyForm.h">
-      <FileType>CppForm</FileType>
-    </ClInclude>
-    <ClInclude Include="resource.h" />
-    <ClInclude Include="EntriesUserControl.h">
+    <ClInclude Include="ReportsUserControl.h">
       <FileType>CppControl</FileType>
     </ClInclude>
+    <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="String.h" />
   </ItemGroup>
@@ -128,15 +136,17 @@
     <Image Include="app.ico" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="MainWindow.resX">
-      <DependentUpon>MainWindow.h</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="MyForm.resx">
-      <DependentUpon>MyForm.h</DependentUpon>
+    <EmbeddedResource Include="BudgetsUserControl.resx">
+      <DependentUpon>BudgetsUserControl.h</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="EntriesUserControl.resx">
       <DependentUpon>EntriesUserControl.h</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainWindow.resx">
+      <DependentUpon>MainWindow.h</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ReportsUserControl.resx">
+      <DependentUpon>ReportsUserControl.h</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

@@ -28,6 +28,9 @@
     <Filter Include="Header Files\Helpers">
       <UniqueIdentifier>{a85c1592-44ab-404a-8284-a4345ad70311}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Forms">
+      <UniqueIdentifier>{9d270a98-e05a-4bca-84cb-b33625a6f80d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -40,9 +43,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="EntriesUserControl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="EntryController.cpp">
@@ -63,6 +63,12 @@
     <ClCompile Include="EarningController.cpp">
       <Filter>Source Files\Controllers</Filter>
     </ClCompile>
+    <ClCompile Include="Budget.cpp">
+      <Filter>Source Files\Controllers</Filter>
+    </ClCompile>
+    <ClCompile Include="BudgetController.cpp">
+      <Filter>Source Files\Controllers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -71,16 +77,7 @@
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MainWindow.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="DebugOut.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MyForm.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="EntriesUserControl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="EntryController.h">
@@ -104,6 +101,27 @@
     <ClInclude Include="EarningController.h">
       <Filter>Header Files\Controllers</Filter>
     </ClInclude>
+    <ClInclude Include="CueTextBox.h">
+      <Filter>Header Files\UserControls</Filter>
+    </ClInclude>
+    <ClInclude Include="Budget.h">
+      <Filter>Header Files\Controllers</Filter>
+    </ClInclude>
+    <ClInclude Include="BudgetController.h">
+      <Filter>Header Files\Controllers</Filter>
+    </ClInclude>
+    <ClInclude Include="BudgetsUserControl.h">
+      <Filter>Header Files\UserControls</Filter>
+    </ClInclude>
+    <ClInclude Include="EntriesUserControl.h">
+      <Filter>Header Files\UserControls</Filter>
+    </ClInclude>
+    <ClInclude Include="MainWindow.h">
+      <Filter>Header Files\Forms</Filter>
+    </ClInclude>
+    <ClInclude Include="ReportsUserControl.h">
+      <Filter>Header Files\UserControls</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="app.rc">
@@ -116,13 +134,13 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="MainWindow.resX">
+    <EmbeddedResource Include="BudgetsUserControl.resx">
       <Filter>Resource Files</Filter>
     </EmbeddedResource>
-    <EmbeddedResource Include="MyForm.resx">
+    <EmbeddedResource Include="MainWindow.resx">
       <Filter>Resource Files</Filter>
     </EmbeddedResource>
-    <EmbeddedResource Include="EntriesUserControl.resx">
+    <EmbeddedResource Include="ReportsUserControl.resx">
       <Filter>Resource Files</Filter>
     </EmbeddedResource>
   </ItemGroup>

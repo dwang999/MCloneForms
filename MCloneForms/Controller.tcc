@@ -55,12 +55,54 @@ template<typename T> void Controller<T>::remove(int indexToRemove)
 	vectorT.erase(vectorT.begin() + indexToRemove);
 }
 
+
+template<typename T> int Controller<T>::generateID()
+{
+	if (vectorT.empty())
+		return 1;
+	else
+	{
+		int largest = 0;
+		for (size_t i = 0; i < vectorT.size(); i++)
+		{
+			if (vectorT[i].id > largest)
+				largest = vectorT[i].id;
+		}
+
+		return largest + 1;
+
+	}
+}
+
+
 template<typename T> void Controller<T>::add(T t)
 {
 
 	vectorT.push_back(t);
 }
 
+template<typename T> void Controller<T>::loadController( std::string fileName)
+	{		
+		std::fstream fs;
+		std::string line;
+
+		fs.open(fileName, std::fstream::in);
+
+
+		if (fs.is_open())
+		{
+			while(!fs.eof())
+			{
+				std::getline(fs, line);
+				if (!line.empty())
+				{
+					this->add(T::parseTokens(line));
+				}
+
+			}
+			fs.close();
+		}
+	}
 
 template<typename T> bool Controller<T>::backupExists()
 {

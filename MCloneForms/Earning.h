@@ -7,23 +7,26 @@
 #include <string>
 #include <ctime>
 #include <iomanip>
+#include <vector>
 
 class Earning
 {
 	friend std::ostream &operator<<(std::ostream &os, const Earning &entry);
 
-	public:
-		Earning(time_t date, float amount);
-		~Earning();
+public:
+	Earning(int id, time_t date, float amount);
+	~Earning();
+	
+	int id;
+	std::time_t date;
+	float amount;
+	static const int NUMOFMEMBERVARIABLES = 3;
+	static Earning parseTokens(std::string str);
 
-		std::time_t date;
-		float amount;
-		static const int NUMOFMEMBERVARIABLES = 2;
-		
 
-		
-	private:
-		Earning();		
+
+private:
+	Earning();		
 
 
 };

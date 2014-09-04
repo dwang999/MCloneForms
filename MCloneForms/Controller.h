@@ -1,4 +1,13 @@
-//Controll
+// Controller.h
+
+
+// IMPORTANT
+// DataType of Controller must have following member variables and functions:
+//     int id;
+//     static datatype parseTokens(std::string str);
+
+
+
 #ifndef CONTROLLER_H_INCLUDED
 #define CONTROLLER_H_INCLUDED
 
@@ -19,7 +28,9 @@ public:
 	std::vector<T> vectorT;
 	std::string profileName;
 	std::string fileName;
-	std::string backupFileName;
+	std::string backupFileName;	
+	void loadController( std::string fileName);
+	int generateID();
 
 private:
 	std::string controllerName;

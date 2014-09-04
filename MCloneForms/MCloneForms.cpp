@@ -2,7 +2,6 @@
 
 #include "stdafx.h"
 #include "MainWindow.h"
-#include "MyForm.h"
 
 using namespace MCloneForms;
 

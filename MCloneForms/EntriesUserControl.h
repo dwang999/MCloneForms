@@ -8,6 +8,7 @@
 #include "FormHelper.h"
 
 using namespace System;
+using namespace System::Text::RegularExpressions;
 using namespace System::ComponentModel;
 using namespace System::Collections;
 using namespace System::Windows::Forms;
@@ -25,54 +26,40 @@ namespace MCloneForms {
 	private:
 		EntryController *entryController;
 		const int DIVIDER_HEIGHT;
-		char * const profileName;
+
+
+
+
+
+	private: System::Windows::Forms::TextBox^  filterTextBox;
+	private: System::Windows::Forms::DataGridViewTextBoxColumn^  ID;
+	private: System::Windows::Forms::DataGridViewTextBoxColumn^  Date;
+	private: System::Windows::Forms::DataGridViewTextBoxColumn^  Description;
+	private: System::Windows::Forms::DataGridViewTextBoxColumn^  Category;
+	private: System::Windows::Forms::DataGridViewTextBoxColumn^  Amount;
+
+
+
+
+
+
+
+
+
+
+
+
 
 	public:
-		EntriesUserControl(void): profileName("Test"), entryController(nullptr), DIVIDER_HEIGHT(4)
+		EntriesUserControl(void): entryController(nullptr), DIVIDER_HEIGHT(4)
 		{
 			InitializeComponent();
 			// Initialize Form Controls			
-			dateTimePicker -> Format = DateTimePickerFormat::Custom;
-			dateTimePicker -> CustomFormat = "ddd, MMMM dd, yyyy";
+		}
 
-
-			// Initiallize member variables			
-			entryController = new EntryController(profileName);
-			if (entryController -> backupExists())
-			{
-				if (FormHelper::showYesNoMessage("MCloneForm Load Backup", "MCloneForm did not close properly. Do you wish to load data from previous session?"))
-					entryController -> loadBackup();
-				else
-				{
-					entryController -> load();
-					entryController -> deleteBackup();
-				}
-			}
-			else
-			{
-				entryController -> load();
-			}
-			entryController -> sortByDate(true);
-
-			// Output details of entries
-			std::vector<Entry> entries = entryController -> getEntries();
-			for (size_t i = 0; i < entries.size(); i ++)
-			{
-				int newRowIndex = this->dataGridView->Rows->Add();
-				setDataGridRowColumns(this->dataGridView->Rows[newRowIndex], convertToString(entries[i].date), entries[i].category, entries[i].subCategory, entries[i].description,
-					entries[i].amount);
-
-				if (i < entries.size() - 1)
-				{
-					const time_t temp = entries[i].date;
-					const time_t temp2 = entries[i + 1].date;
-					// Seperate the entries by month and year
-					if (localtime(&temp) -> tm_mon != localtime(&temp2) -> tm_mon || localtime(&temp) -> tm_year != localtime(&temp2) -> tm_year) 
-					{
-						dataGridView->Rows[newRowIndex] ->DividerHeight = DIVIDER_HEIGHT;
-					}
-				}
-			}
+		void setController(EntryController* tempController)
+		{
+			entryController = tempController;
 		}
 
 	protected:
@@ -86,11 +73,6 @@ namespace MCloneForms {
 				delete components;
 			}
 
-			if (entryController)
-			{
-				delete entryController;
-				entryController = NULL;
-			}
 		}
 	private: 
 		System::Windows::Forms::DataGridView^  dataGridView;
@@ -98,15 +80,15 @@ namespace MCloneForms {
 		System::Windows::Forms::Button^  editButton;
 		System::Windows::Forms::TextBox^  descriptionAdd;
 		System::Windows::Forms::TextBox^  amountAdd;
-		System::Windows::Forms::TextBox^  subCategoryAdd;
+
 		System::Windows::Forms::TextBox^  categoryAdd;
 		System::Windows::Forms::DateTimePicker^  dateTimePicker;
 		System::Windows::Forms::Button^  saveButton;
-		System::Windows::Forms::DataGridViewTextBoxColumn^  Date;
-		System::Windows::Forms::DataGridViewTextBoxColumn^  Description;
-		System::Windows::Forms::DataGridViewTextBoxColumn^  Category;
-		System::Windows::Forms::DataGridViewTextBoxColumn^  SubCategory;
-		System::Windows::Forms::DataGridViewTextBoxColumn^  Amount;
+
+
+
+
+
 	private:
 		/// <summary>
 		/// Required designer variable.
@@ -121,10 +103,10 @@ namespace MCloneForms {
 		void InitializeComponent(void)
 		{
 			this->dataGridView = (gcnew System::Windows::Forms::DataGridView());
+			this->ID = (gcnew System::Windows::Forms::DataGridViewTextBoxColumn());
 			this->Date = (gcnew System::Windows::Forms::DataGridViewTextBoxColumn());
 			this->Description = (gcnew System::Windows::Forms::DataGridViewTextBoxColumn());
 			this->Category = (gcnew System::Windows::Forms::DataGridViewTextBoxColumn());
-			this->SubCategory = (gcnew System::Windows::Forms::DataGridViewTextBoxColumn());
 			this->Amount = (gcnew System::Windows::Forms::DataGridViewTextBoxColumn());
 			this->editButton = (gcnew System::Windows::Forms::Button());
 			this->addButton = (gcnew System::Windows::Forms::Button());
@@ -133,7 +115,7 @@ namespace MCloneForms {
 			this->categoryAdd = (gcnew System::Windows::Forms::TextBox());
 			this->descriptionAdd = (gcnew System::Windows::Forms::TextBox());
 			this->amountAdd = (gcnew System::Windows::Forms::TextBox());
-			this->subCategoryAdd = (gcnew System::Windows::Forms::TextBox());
+			this->filterTextBox = (gcnew System::Windows::Forms::TextBox());
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->dataGridView))->BeginInit();
 			this->SuspendLayout();
 			// 
@@ -146,8 +128,8 @@ namespace MCloneForms {
 			this->dataGridView->AutoSizeColumnsMode = System::Windows::Forms::DataGridViewAutoSizeColumnsMode::Fill;
 			this->dataGridView->BackgroundColor = System::Drawing::SystemColors::Window;
 			this->dataGridView->ColumnHeadersHeightSizeMode = System::Windows::Forms::DataGridViewColumnHeadersHeightSizeMode::AutoSize;
-			this->dataGridView->Columns->AddRange(gcnew cli::array< System::Windows::Forms::DataGridViewColumn^  >(5) {this->Date, this->Description, 
-				this->Category, this->SubCategory, this->Amount});
+			this->dataGridView->Columns->AddRange(gcnew cli::array< System::Windows::Forms::DataGridViewColumn^  >(5) {this->ID, this->Date, 
+				this->Description, this->Category, this->Amount});
 			this->dataGridView->Location = System::Drawing::Point(3, 28);
 			this->dataGridView->Name = L"dataGridView";
 			this->dataGridView->ReadOnly = true;
@@ -159,10 +141,17 @@ namespace MCloneForms {
 			this->dataGridView->CellContentClick += gcnew System::Windows::Forms::DataGridViewCellEventHandler(this, &EntriesUserControl::dataGridView_CellContentClick);
 			this->dataGridView->CellValueChanged += gcnew System::Windows::Forms::DataGridViewCellEventHandler(this, &EntriesUserControl::dataGridView_CellValueChanged);
 			this->dataGridView->ColumnHeaderMouseClick += gcnew System::Windows::Forms::DataGridViewCellMouseEventHandler(this, &EntriesUserControl::dataGridView_ColumnHeaderMouseClick);
+			this->dataGridView->SortCompare += gcnew System::Windows::Forms::DataGridViewSortCompareEventHandler(this, &EntriesUserControl::dataGridView_SortCompare);
+			// 
+			// ID
+			// 
+			this->ID->HeaderText = L"ID";
+			this->ID->Name = L"ID";
+			this->ID->ReadOnly = true;
+			this->ID->Visible = false;
 			// 
 			// Date
 			// 
-			this->Date->FillWeight = 99.1972F;
 			this->Date->HeaderText = L"Date";
 			this->Date->Name = L"Date";
 			this->Date->ReadOnly = true;
@@ -176,28 +165,19 @@ namespace MCloneForms {
 			// 
 			// Category
 			// 
-			this->Category->FillWeight = 99.40995F;
 			this->Category->HeaderText = L"Category";
 			this->Category->Name = L"Category";
 			this->Category->ReadOnly = true;
 			// 
-			// SubCategory
-			// 
-			this->SubCategory->FillWeight = 101.0354F;
-			this->SubCategory->HeaderText = L"SubCategory";
-			this->SubCategory->Name = L"SubCategory";
-			this->SubCategory->ReadOnly = true;
-			// 
 			// Amount
 			// 
-			this->Amount->FillWeight = 100.3683F;
 			this->Amount->HeaderText = L"Amount";
 			this->Amount->Name = L"Amount";
 			this->Amount->ReadOnly = true;
 			// 
 			// editButton
 			// 
-			this->editButton->Location = System::Drawing::Point(547, -1);
+			this->editButton->Location = System::Drawing::Point(86, -1);
 			this->editButton->Name = L"editButton";
 			this->editButton->Size = System::Drawing::Size(75, 23);
 			this->editButton->TabIndex = 3;
@@ -208,7 +188,7 @@ namespace MCloneForms {
 			// 
 			// addButton
 			// 
-			this->addButton->Location = System::Drawing::Point(628, -1);
+			this->addButton->Location = System::Drawing::Point(167, -1);
 			this->addButton->Name = L"addButton";
 			this->addButton->Size = System::Drawing::Size(75, 23);
 			this->addButton->TabIndex = 6;
@@ -219,7 +199,7 @@ namespace MCloneForms {
 			// 
 			// saveButton
 			// 
-			this->saveButton->Location = System::Drawing::Point(709, -1);
+			this->saveButton->Location = System::Drawing::Point(5, -1);
 			this->saveButton->Name = L"saveButton";
 			this->saveButton->Size = System::Drawing::Size(75, 23);
 			this->saveButton->TabIndex = 7;
@@ -232,15 +212,15 @@ namespace MCloneForms {
 			// 
 			this->dateTimePicker->Location = System::Drawing::Point(5, 28);
 			this->dateTimePicker->Name = L"dateTimePicker";
-			this->dateTimePicker->Size = System::Drawing::Size(190, 20);
+			this->dateTimePicker->Size = System::Drawing::Size(255, 20);
 			this->dateTimePicker->TabIndex = 8;
 			this->dateTimePicker->Visible = false;
 			// 
 			// categoryAdd
 			// 
-			this->categoryAdd->Location = System::Drawing::Point(201, 28);
+			this->categoryAdd->Location = System::Drawing::Point(266, 29);
 			this->categoryAdd->Name = L"categoryAdd";
-			this->categoryAdd->Size = System::Drawing::Size(190, 20);
+			this->categoryAdd->Size = System::Drawing::Size(255, 20);
 			this->categoryAdd->TabIndex = 9;
 			this->categoryAdd->Tag = L"";
 			this->categoryAdd->Visible = false;
@@ -257,37 +237,40 @@ namespace MCloneForms {
 			// 
 			// amountAdd
 			// 
-			this->amountAdd->Location = System::Drawing::Point(593, 28);
+			this->amountAdd->Location = System::Drawing::Point(527, 28);
 			this->amountAdd->Name = L"amountAdd";
-			this->amountAdd->Size = System::Drawing::Size(190, 20);
+			this->amountAdd->Size = System::Drawing::Size(255, 20);
 			this->amountAdd->TabIndex = 11;
 			this->amountAdd->Tag = L"";
 			this->amountAdd->Visible = false;
 			// 
-			// subCategoryAdd
+			// filterTextBox
 			// 
-			this->subCategoryAdd->Location = System::Drawing::Point(397, 28);
-			this->subCategoryAdd->Name = L"subCategoryAdd";
-			this->subCategoryAdd->Size = System::Drawing::Size(190, 20);
-			this->subCategoryAdd->TabIndex = 10;
-			this->subCategoryAdd->Tag = L"";
-			this->subCategoryAdd->Visible = false;
+			this->filterTextBox->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 8.25F, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point, 
+				static_cast<System::Byte>(0)));
+			this->filterTextBox->Location = System::Drawing::Point(397, 3);
+			this->filterTextBox->Name = L"filterTextBox";
+			this->filterTextBox->Size = System::Drawing::Size(386, 20);
+			this->filterTextBox->TabIndex = 13;
+			this->filterTextBox->TabStop = false;
+			this->filterTextBox->TextChanged += gcnew System::EventHandler(this, &EntriesUserControl::filterTextBox_TextChanged);
 			// 
 			// EntriesUserControl
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
+			this->Controls->Add(this->filterTextBox);
 			this->Controls->Add(this->dateTimePicker);
 			this->Controls->Add(this->categoryAdd);
 			this->Controls->Add(this->descriptionAdd);
 			this->Controls->Add(this->amountAdd);
-			this->Controls->Add(this->subCategoryAdd);
 			this->Controls->Add(this->saveButton);
 			this->Controls->Add(this->addButton);
 			this->Controls->Add(this->editButton);
 			this->Controls->Add(this->dataGridView);
 			this->Name = L"EntriesUserControl";
 			this->Size = System::Drawing::Size(788, 715);
+			this->Load += gcnew System::EventHandler(this, &EntriesUserControl::EntriesUserControl_Load);
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->dataGridView))->EndInit();
 			this->ResumeLayout(false);
 			this->PerformLayout();
@@ -296,6 +279,31 @@ namespace MCloneForms {
 #pragma endregion
 #pragma region Events
 		// private events
+	private: System::Void EntriesUserControl_Load(System::Object^  sender, System::EventArgs^  e) {
+				 dateTimePicker -> Format = DateTimePickerFormat::Custom;
+				 dateTimePicker -> CustomFormat = "ddd, MMMM dd, yyyy";
+
+
+				 // Initiallize member variables			
+				 if (entryController -> backupExists())
+				 {
+					 if (FormHelper::showYesNoMessage("MCloneForm Load Backup", "MCloneForm did not close properly. Do you wish to load data from previous session?"))
+						 entryController -> loadBackup();
+					 else
+					 {
+						 entryController -> load();
+						 entryController -> deleteBackup();
+					 }
+				 }
+				 else
+				 {
+					 entryController -> load();
+				 }
+
+				 // Output details of entries
+				 rebindDataGridView();
+				 setAutoComplete();
+			 }
 	private: System::Void addButton_Click(System::Object^  sender, System::EventArgs^  e) {
 				 if (dataGridView -> ReadOnly)
 				 {
@@ -304,7 +312,7 @@ namespace MCloneForms {
 					 {
 						 toggleAddTextBoxes();
 						 changeDisplayAddButton(0, 100, -100);
-						 addButton -> Text = "OK";
+						 addButton -> Text = "Add Entry";
 					 }
 					 else
 					 {
@@ -314,17 +322,22 @@ namespace MCloneForms {
 						 {
 							 float amount;
 							 amount = stof(convertSystemToSTDString(amountAdd -> Text));
-							 // Add row to data grid view
-							 int newRowIndex = dataGridView -> Rows -> Add();
-							 setDataGridRowColumns(dataGridView -> Rows[newRowIndex], dateTimePicker -> Value.ToString("MMM dd, yyyy"), categoryAdd -> Text, subCategoryAdd -> Text, descriptionAdd -> Text, amount);
+							 int id;
 
+
+							 // Add to controller
 							 tm tm = {0};
 							 convertStringToTM(convertSystemToSTDString(dateTimePicker -> Value.ToString("MM/dd/yyyy")), tm);
 							 // Auto save Entry Controller
-							 entryController -> add(tm, convertSystemToSTDString(categoryAdd -> Text), 
-								 convertSystemToSTDString(subCategoryAdd -> Text), convertSystemToSTDString(descriptionAdd -> Text), amount);
+							 id = entryController -> add(tm, convertSystemToSTDString(categoryAdd -> Text), convertSystemToSTDString(descriptionAdd -> Text), amount);
 							 entryController->autoSave();
 
+
+							 // Add row to data grid view
+							 int newRowIndex = dataGridView -> Rows -> Add();
+							 setDataGridRowColumns(dataGridView -> Rows[newRowIndex], id, dateTimePicker -> Value.ToString("MMM dd, yyyy"), categoryAdd -> Text, descriptionAdd -> Text, amount);
+
+							 setAutoComplete();
 							 changeDisplayAddButton(0, -100, 100);
 							 toggleAddTextBoxes();	
 							 resetAddTextBoxes();
@@ -382,7 +395,7 @@ namespace MCloneForms {
 							 std::string dateString = convertSystemToSTDString(datetime.ToString("MM/dd/yyyy"));
 							 tm tm = {0};
 							 convertStringToTM(dateString, tm);
-							 entryController->modifyDate(e->RowIndex, tm);
+							 entryController->modifyDate(Int32::Parse(dataGridView -> Rows[e->RowIndex] -> Cells["ID"] -> Value ->ToString()), tm);
 
 							 // Format data cell
 							 System::String^ systemDateString = datetime.ToString("MMM dd, yyyy");
@@ -391,7 +404,7 @@ namespace MCloneForms {
 						 else
 						 {
 							 char buff[20];
-							 time_t tt = entryController->getDate(e->RowIndex);
+							 time_t tt = entryController->getDate(Int32::Parse(dataGridView -> Rows[e->RowIndex] -> Cells["ID"] -> Value ->ToString()));
 							 strftime(buff, 20,"%b %d, %Y", localtime(&tt));
 							 dataGridView -> Rows[e->RowIndex] -> Cells[e->ColumnIndex] -> Value = convertToSystemString(buff); 
 							 FormHelper::showErrorMessage("Edit Error", "Date value is not a valid Date");
@@ -400,20 +413,17 @@ namespace MCloneForms {
 					 else if (columnName == "Category")
 					 {
 						 if (!System::String::IsNullOrWhiteSpace(cellValue))
-							 entryController->modifyCategory(e->RowIndex, convertSystemToSTDString(cellValue));
+							 entryController->modifyCategory(Int32::Parse(dataGridView -> Rows[e->RowIndex] -> Cells["ID"] -> Value ->ToString()), convertSystemToSTDString(cellValue));
 						 else
 						 {
-							 dataGridView -> Rows[e->RowIndex] -> Cells[e->ColumnIndex] -> Value = convertToSystemString(entryController->getCategory(e->RowIndex)); 
+							 dataGridView -> Rows[e->RowIndex] -> Cells[e->ColumnIndex] -> Value = 
+								 convertToSystemString(entryController->getCategory(Int32::Parse(dataGridView -> Rows[e->RowIndex] -> Cells["ID"] -> Value ->ToString()))); 
 							 FormHelper::showErrorMessage("Edit Error", "Category must not be an empty string");
 						 }
 					 }
-					 else if (columnName == "SubCategory")
-					 {
-						 entryController->modifySubCategory(e->RowIndex, convertSystemToSTDString(cellValue));
-					 }
 					 else if (columnName  == "Description")
 					 {
-						 entryController->modifyDescription(e->RowIndex, convertSystemToSTDString(cellValue));
+						 entryController->modifyDescription(Int32::Parse(dataGridView -> Rows[e->RowIndex] -> Cells["ID"] -> Value ->ToString()), convertSystemToSTDString(cellValue));
 					 }
 					 else if (columnName  == "Amount")
 					 {
@@ -422,13 +432,14 @@ namespace MCloneForms {
 							 cellValue = cellValue -> Replace("$", "");
 							 cellValue = cellValue -> Replace(" ", "");
 							 float amount = stof(convertSystemToSTDString(cellValue));
-							 entryController->modifyAmount(e->RowIndex, amount);
+							 entryController->modifyAmount(Int32::Parse(dataGridView -> Rows[e->RowIndex] -> Cells["ID"] -> Value ->ToString()), amount);
 							 // Format data cell
 							 dataGridView -> Rows[e->RowIndex] -> Cells[e->ColumnIndex] -> Value = convertToSystemString(convertToCurrencyString(amount));
 						 }
 						 else
 						 {
-							 dataGridView -> Rows[e->RowIndex] -> Cells[e->ColumnIndex] -> Value = convertToSystemString(convertToCurrencyString(entryController->getAmount(e->RowIndex))); 
+							 dataGridView -> Rows[e->RowIndex] -> Cells[e->ColumnIndex] -> Value = 
+								 convertToSystemString(convertToCurrencyString(entryController->getAmount(Int32::Parse(dataGridView -> Rows[e->RowIndex] -> Cells["ID"] -> Value ->ToString())))); 
 							 FormHelper::showErrorMessage("Edit Error", "Amount must be a non-empty all numeral value");
 						 }
 					 }
@@ -444,53 +455,156 @@ namespace MCloneForms {
 
 	private: System::Void dataGridView_ColumnHeaderMouseClick(System::Object^  sender, System::Windows::Forms::DataGridViewCellMouseEventArgs^  e) {
 				 std::string columnName = convertSystemToSTDString(dataGridView -> Columns[e -> ColumnIndex] -> Name -> ToString());
-
-				 bool desc;
-				 if(dataGridView -> SortOrder == Windows::Forms::SortOrder::Descending)
-					 desc = true;
-				 else
-					 desc = false;
-
-				 if (columnName == "Date")
-				 {
-					 entryController -> sortByDate(desc);
-				 }
-				 else if (columnName == "Category")
-				 {
-					 entryController -> sortByCategory(desc);
-				 }
-				 else if (columnName == "SubCategory")
-				 {
-					 entryController -> sortBySubCategory(desc);
-				 }
-				 else if (columnName  == "Description")
-				 {
-					 entryController -> sortByDescription(desc);
-				 }
-				 else if (columnName  == "Amount")
-				 {
-					 entryController -> sortByAmount(desc);
-				 }
-				 else if (columnName  == "Remove")
-				 {
-				 }
-				 else
-				 {
-					 throw std::runtime_error("MainWindow::dataGridView_ColumnHeaderMouseClick : Column header \"" + columnName + "\" not found");
-				 }
 				 resetDividers(columnName);
 			 }
 	private: System::Void dataGridView_CellContentClick(System::Object^  sender, System::Windows::Forms::DataGridViewCellEventArgs^  e) {
 				 std::string columnName = convertSystemToSTDString(dataGridView -> Columns[e -> ColumnIndex] -> Name -> ToString()); 
 				 if (columnName == "Remove")
 				 {
+					 entryController -> remove(Int32::Parse(dataGridView -> Rows[e->RowIndex] -> Cells["ID"] -> Value ->ToString()));
 					 dataGridView -> Rows -> RemoveAt(e -> RowIndex);
-					 entryController -> remove(e->RowIndex);
 					 entryController -> autoSave();
 				 }
 			 }
 
+	private: System::Void dataGridView_SortCompare(System::Object^  sender, System::Windows::Forms::DataGridViewSortCompareEventArgs^  e) {
 
+				 if(e -> Column -> Name == "Date"){
+					 e -> Handled = true;
+					 e -> SortResult = DateCompare(e -> CellValue1 -> ToString(), e -> CellValue2 -> ToString());
+				 }
+				 else if (e -> Column -> Name == "Amount"){
+					 e -> Handled = true;
+					 e -> SortResult = AmountCompare(e -> CellValue1 -> ToString(), e -> CellValue2 -> ToString());
+				 }
+			 }
+
+			 int DateCompare(String ^o1, String ^o2)
+			 {
+				 return DateTime::Parse(o1).CompareTo(DateTime::Parse(o2));
+			 }
+
+			 int AmountCompare(String ^o1, String ^o2)
+			 {
+				 o1 = o1 -> Replace("$", "");
+				 o1 = o1 -> Replace(" ", "");
+				 o2 = o2 -> Replace("$", "");
+				 o2 = o2 -> Replace(" ", "");			
+				 return float::Parse(o1).CompareTo(float::Parse(o2));
+			 }
+
+
+	private: System::Void filterTextBox_TextChanged(System::Object^  sender, System::EventArgs^  e) {
+				 Timers::Timer^ timer = gcnew Timers::Timer(2000);
+				 timer -> Elapsed += gcnew System::Timers::ElapsedEventHandler(this, &EntriesUserControl::filterDataGridView);
+				 timer -> Enabled = true;
+				 timer -> AutoReset = false;
+				 timer -> SynchronizingObject = this;
+			 }
+
+			 void filterDataGridView (Object^ source, Timers::ElapsedEventArgs^ e)
+			 {
+				 std::vector<int> indexesToRemove = std::vector<int>();
+				 DateTime dateResult;
+				 float amountResult;
+				 String ^ filterString = filterTextBox -> Text;
+				 rebindDataGridView();
+				 if (!String::IsNullOrWhiteSpace(filterString) && !filterRegexCheck(filterString))
+				 {
+					 if(DateTime::TryParse(filterString, dateResult))
+					 {
+						 for (int i = 0; i < dataGridView -> RowCount; i++)
+						 {
+							 if (!DateTime::Parse(dataGridView->Rows[i]->Cells["Date"]->Value->ToString()).Equals(dateResult))
+							 {
+								 indexesToRemove.push_back(i);
+							 }
+						 }
+					 }
+					 else if(float::TryParse(filterString, amountResult))
+					 {
+						 for (int i = 0; i < dataGridView -> RowCount; i++)
+						 {
+							 String^ hi = dataGridView->Rows[i]->Cells["Amount"]->ToString();
+							 if (!float::Parse(dataGridView->Rows[i]->Cells["Amount"]->Value->ToString()->Replace("$", "")->Replace(" ", "")).Equals(amountResult))
+							 {
+								 indexesToRemove.push_back(i);
+							 }
+						 }
+					 }
+					 else
+					 {
+						 for (int i = 0; i < dataGridView -> RowCount; i++)
+						 {
+							 if (!dataGridView->Rows[i]->Cells["Category"]->Value->ToString() -> Contains(filterString) && 
+								 !dataGridView->Rows[i]->Cells["Description"]->Value->ToString() -> Contains(filterString))
+							 {
+								 indexesToRemove.push_back(i);
+							 }
+						 }
+
+					 }
+
+					 std::sort(indexesToRemove.rbegin(), indexesToRemove.rend());
+					 for (int index : indexesToRemove)
+					 {
+						 dataGridView -> Rows ->RemoveAt(index);
+					 }
+				 }
+			 }
+
+			 // return true if a regex is found false if not
+			 bool filterRegexCheck(String^ filterString)
+			 {
+				 std::vector<int> indexesToRemove = std::vector<int>();
+				 bool success = false;
+				 if(Regex::IsMatch(filterString,"\".*\""))
+				 {
+					 filterString = filterString -> Replace("\"", "");
+					 for (int i = 0; i < dataGridView -> RowCount; i++)
+					 {
+						 if (!dataGridView->Rows[i]->Cells["Category"]->Value->ToString() -> Contains(filterString) &&
+							 !dataGridView->Rows[i]->Cells["Description"]->Value->ToString() -> Contains(filterString))
+						 {
+							 indexesToRemove.push_back(i);
+						 }
+					 }
+					 success = true;
+				 }
+				 if(Regex::IsMatch(filterString,".*:.*"))
+				 {
+					 int index = filterString -> IndexOf(":");
+					 String^ category = filterString -> Substring(0, index) -> Trim();
+					 String^ filter = filterString -> Substring(index + 1, filterString->Length - index - 1) -> Trim();
+
+
+
+					 if (dataGridView -> Columns -> Contains(category))
+					 {
+						 for (int i = 0; i < dataGridView -> RowCount; i++)
+						 {
+							 if (!dataGridView->Rows[i]->Cells[category]->Value->ToString() -> Contains(filter))
+							 {
+								 indexesToRemove.push_back(i);
+							 }
+						 }
+					 }
+					 else
+					 {
+						 dataGridView -> Rows -> Clear();
+					 }
+					 success = true;
+				 }
+
+
+
+				 std::sort(indexesToRemove.rbegin(), indexesToRemove.rend());
+				 for (int index : indexesToRemove)
+				 {
+					 dataGridView -> Rows ->RemoveAt(index);
+				 }
+				 return success;
+			 }
 
 			 // private Methods
 #pragma endregion
@@ -530,7 +644,6 @@ namespace MCloneForms {
 		{
 			dateTimePicker -> Visible = !(dateTimePicker -> Visible);
 			categoryAdd -> Visible = !(categoryAdd -> Visible);
-			subCategoryAdd -> Visible = !(subCategoryAdd -> Visible);
 			amountAdd -> Visible = !(amountAdd -> Visible);
 			descriptionAdd -> Visible = !(descriptionAdd -> Visible);
 		}
@@ -538,30 +651,29 @@ namespace MCloneForms {
 		{
 			dateTimePicker -> Value = System::DateTime::Now;
 			categoryAdd -> Text = "";
-			subCategoryAdd -> Text = "";
 			amountAdd -> Text = "";
 			descriptionAdd -> Text = "";
 		}
 		void sortByDate()
 		{
-			dataGridView -> Sort(dataGridView->Columns[0], System::ComponentModel::ListSortDirection::Descending);
+			dataGridView -> Sort(dataGridView->Columns["Date"], System::ComponentModel::ListSortDirection::Descending);
 			resetDividers("Date");
 		}
 
-		void setDataGridRowColumns(DataGridViewRow^ row, std::string date, std::string category, std::string subCategory, std::string description, float amount)
+		void setDataGridRowColumns(DataGridViewRow^ row, int id, std::string date, std::string category, std::string description, float amount)
 		{
+			row -> Cells["ID"] -> Value = id.ToString();
 			row -> Cells["Date"] -> Value = convertToSystemString(date);
 			row -> Cells["Category"] -> Value = convertToSystemString(category);
-			row -> Cells["SubCategory"] -> Value = convertToSystemString(subCategory);
 			row -> Cells["Description"] -> Value = convertToSystemString(description);
 			row -> Cells["Amount"] -> Value = convertToSystemString(convertToCurrencyString(amount));
 		}
 
-		void setDataGridRowColumns(DataGridViewRow^ row, System::String^ date, System::String^ category, System::String^ subCategory, System::String^ description, float amount)
+		void setDataGridRowColumns(DataGridViewRow^ row, int id, System::String^ date, System::String^ category, System::String^ description, float amount)
 		{
+			row -> Cells["ID"] -> Value = id.ToString();
 			row -> Cells["Date"] -> Value = date;
 			row -> Cells["Category"] -> Value = category;
-			row -> Cells["SubCategory"] -> Value = subCategory;
 			row -> Cells["Description"] -> Value = description;
 			row -> Cells["Amount"] -> Value = convertToSystemString(convertToCurrencyString(amount));
 		}
@@ -586,13 +698,6 @@ namespace MCloneForms {
 					else if (columnName == "Category")
 					{
 						if (!dataGridView->Rows[i] -> Cells["Category"] -> Value -> ToString() -> Equals(dataGridView->Rows[i + 1] -> Cells["Category"] -> Value -> ToString())) 
-						{
-							dataGridView->Rows[i] -> DividerHeight = DIVIDER_HEIGHT;
-						}
-					}
-					else if (columnName == "SubCategory")
-					{
-						if (!dataGridView->Rows[i] -> Cells["SubCategory"] -> Value -> ToString() -> Equals(dataGridView->Rows[i + 1] -> Cells["SubCategory"] -> Value -> ToString())) 
 						{
 							dataGridView->Rows[i] -> DividerHeight = DIVIDER_HEIGHT;
 						}
@@ -629,8 +734,33 @@ namespace MCloneForms {
 			}
 
 		}
+
+		void rebindDataGridView()
+		{
+			std::vector<Entry> entries = entryController -> getEntries();
+			dataGridView -> Rows -> Clear();
+			for (size_t i = 0; i < entries.size(); i ++)
+			{
+				int newRowIndex = this->dataGridView->Rows->Add();
+				setDataGridRowColumns(this->dataGridView->Rows[newRowIndex], entries[i].id, convertToString(entries[i].date), entries[i].category, entries[i].description,
+					entries[i].amount);
+			}
+			sortByDate();
+		}
+
+		void setAutoComplete()
+		{
+			AutoCompleteStringCollection^ categories = gcnew AutoCompleteStringCollection();
+			for (int i = 0; i < dataGridView -> RowCount; i++)
+			{
+				categories->Add(dataGridView->Rows[i]->Cells["Category"]->Value->ToString());
+			}
+			categoryAdd -> AutoCompleteCustomSource = categories;
+			categoryAdd -> AutoCompleteSource = AutoCompleteSource::CustomSource;
+			categoryAdd -> AutoCompleteMode = AutoCompleteMode::SuggestAppend;
+		}
 #pragma endregion
-		
+
 #pragma region Public Methods
 		// public methods
 	public: bool closeUserControl()
