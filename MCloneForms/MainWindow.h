@@ -29,9 +29,9 @@ namespace MCloneForms {
 		{
 			InitializeComponent();
 			entryController = new EntryController(profileName);
-			entriesUserControl ->setController(entryController);
+			entriesUserControl ->Init(entryController);
 			budgetController = new BudgetController(profileName);
-			budgetsUserControl ->setController(budgetController);
+			budgetsUserControl ->Init(budgetController);
 			tabControl -> ItemSize = System::Drawing::Size(90, 30);
 
 		}

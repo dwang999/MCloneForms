@@ -62,9 +62,33 @@ namespace MCloneForms {
 			InitializeComponent();
 		}
 
-		void setController(BudgetController* tempController)
+		void Init(BudgetController* tempController)
 		{
 			budgetController = tempController;
+			// Initialize Form Controls		
+			dateTimePicker -> Format = DateTimePickerFormat::Custom;
+			dateTimePicker -> CustomFormat = "ddd, MMMM dd, yyyy";
+
+
+			// Initiallize member variables			
+			if (budgetController -> backupExists())
+			{
+				if (FormHelper::showYesNoMessage("MCloneForm Load Backup", "MCloneForm did not close properly. Do you wish to load data from previous session?"))
+					budgetController -> loadBackup();
+				else
+				{
+					budgetController -> load();
+					budgetController -> deleteBackup();
+				}
+			}
+			else
+			{
+				budgetController -> load();
+			}
+
+			// Output details of budgets
+			rebindDataGridView();
+			setAutoComplete();
 		}
 
 	protected:
@@ -255,7 +279,6 @@ namespace MCloneForms {
 			this->Controls->Add(this->dataGridView);
 			this->Name = L"BudgetsUserControl";
 			this->Size = System::Drawing::Size(788, 715);
-			this->Load += gcnew System::EventHandler(this, &BudgetsUserControl::BudgetsUserControl_Load);
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->dataGridView))->EndInit();
 			this->ResumeLayout(false);
 			this->PerformLayout();
@@ -264,32 +287,6 @@ namespace MCloneForms {
 #pragma endregion
 #pragma region Events
 		// private events
-	private: System::Void BudgetsUserControl_Load(System::Object^  sender, System::EventArgs^  e) {
-				 // Initialize Form Controls		
-				 dateTimePicker -> Format = DateTimePickerFormat::Custom;
-				 dateTimePicker -> CustomFormat = "ddd, MMMM dd, yyyy";
-
-
-				 // Initiallize member variables			
-				 if (budgetController -> backupExists())
-				 {
-					 if (FormHelper::showYesNoMessage("MCloneForm Load Backup", "MCloneForm did not close properly. Do you wish to load data from previous session?"))
-						 budgetController -> loadBackup();
-					 else
-					 {
-						 budgetController -> load();
-						 budgetController -> deleteBackup();
-					 }
-				 }
-				 else
-				 {
-					 budgetController -> load();
-				 }
-
-				 // Output details of budgets
-				 rebindDataGridView();
-				 setAutoComplete();
-			 }
 	private: System::Void addButton_Click(System::Object^  sender, System::EventArgs^  e) {
 				 if (dataGridView -> ReadOnly)
 				 {

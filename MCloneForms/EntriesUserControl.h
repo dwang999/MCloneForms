@@ -57,9 +57,32 @@ namespace MCloneForms {
 			// Initialize Form Controls			
 		}
 
-		void setController(EntryController* tempController)
+		void Init(EntryController* tempController)
 		{
 			entryController = tempController;
+			dateTimePicker -> Format = DateTimePickerFormat::Custom;
+			dateTimePicker -> CustomFormat = "ddd, MMMM dd, yyyy";
+
+
+			// Initiallize member variables			
+			if (entryController -> backupExists())
+			{
+				if (FormHelper::showYesNoMessage("MCloneForm Load Backup", "MCloneForm did not close properly. Do you wish to load data from previous session?"))
+					entryController -> loadBackup();
+				else
+				{
+					entryController -> load();
+					entryController -> deleteBackup();
+				}
+			}
+			else
+			{
+				entryController -> load();
+			}
+
+			// Output details of entries
+			rebindDataGridView();
+			setAutoComplete();
 		}
 
 	protected:
@@ -270,7 +293,6 @@ namespace MCloneForms {
 			this->Controls->Add(this->dataGridView);
 			this->Name = L"EntriesUserControl";
 			this->Size = System::Drawing::Size(788, 715);
-			this->Load += gcnew System::EventHandler(this, &EntriesUserControl::EntriesUserControl_Load);
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->dataGridView))->EndInit();
 			this->ResumeLayout(false);
 			this->PerformLayout();
@@ -279,31 +301,6 @@ namespace MCloneForms {
 #pragma endregion
 #pragma region Events
 		// private events
-	private: System::Void EntriesUserControl_Load(System::Object^  sender, System::EventArgs^  e) {
-				 dateTimePicker -> Format = DateTimePickerFormat::Custom;
-				 dateTimePicker -> CustomFormat = "ddd, MMMM dd, yyyy";
-
-
-				 // Initiallize member variables			
-				 if (entryController -> backupExists())
-				 {
-					 if (FormHelper::showYesNoMessage("MCloneForm Load Backup", "MCloneForm did not close properly. Do you wish to load data from previous session?"))
-						 entryController -> loadBackup();
-					 else
-					 {
-						 entryController -> load();
-						 entryController -> deleteBackup();
-					 }
-				 }
-				 else
-				 {
-					 entryController -> load();
-				 }
-
-				 // Output details of entries
-				 rebindDataGridView();
-				 setAutoComplete();
-			 }
 	private: System::Void addButton_Click(System::Object^  sender, System::EventArgs^  e) {
 				 if (dataGridView -> ReadOnly)
 				 {
