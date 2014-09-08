@@ -66,24 +66,27 @@ namespace MCloneForms {
 		{
 			budgetController = tempController;
 			// Initialize Form Controls		
-			dateTimePicker -> Format = DateTimePickerFormat::Custom;
-			dateTimePicker -> CustomFormat = "ddd, MMMM dd, yyyy";
 
 
 			// Initiallize member variables			
 			if (budgetController -> backupExists())
 			{
-				if (FormHelper::showYesNoMessage("MCloneForm Load Backup", "MCloneForm did not close properly. Do you wish to load data from previous session?"))
+				if (FormHelper::showYesNoMessage("MCloneForm Load Backup", "MCloneForm did not close properly. Do you wish to load Budgets from previous session?"))
+				{
 					budgetController -> loadBackup();
+					saveButton -> Enabled = true;
+				}
 				else
 				{
 					budgetController -> load();
 					budgetController -> deleteBackup();
+					saveButton -> Enabled = false;
 				}
 			}
 			else
 			{
 				budgetController -> load();
+				saveButton -> Enabled = false;
 			}
 
 			// Output details of budgets
@@ -163,7 +166,7 @@ namespace MCloneForms {
 			this->dataGridView->RowHeadersVisible = false;
 			this->dataGridView->RowHeadersWidthSizeMode = System::Windows::Forms::DataGridViewRowHeadersWidthSizeMode::DisableResizing;
 			this->dataGridView->Size = System::Drawing::Size(780, 684);
-			this->dataGridView->TabIndex = 1;
+			this->dataGridView->TabIndex = 3;
 			this->dataGridView->TabStop = false;
 			this->dataGridView->CellContentClick += gcnew System::Windows::Forms::DataGridViewCellEventHandler(this, &BudgetsUserControl::dataGridView_CellContentClick);
 			this->dataGridView->CellValueChanged += gcnew System::Windows::Forms::DataGridViewCellEventHandler(this, &BudgetsUserControl::dataGridView_CellValueChanged);
@@ -230,10 +233,13 @@ namespace MCloneForms {
 			// 
 			// dateTimePicker
 			// 
+			this->dateTimePicker->AccessibleRole = System::Windows::Forms::AccessibleRole::Caret;
+			this->dateTimePicker->CustomFormat = L"MMMM yyyy";
+			this->dateTimePicker->Format = System::Windows::Forms::DateTimePickerFormat::Custom;
 			this->dateTimePicker->Location = System::Drawing::Point(5, 28);
 			this->dateTimePicker->Name = L"dateTimePicker";
 			this->dateTimePicker->Size = System::Drawing::Size(255, 20);
-			this->dateTimePicker->TabIndex = 8;
+			this->dateTimePicker->TabIndex = 1;
 			this->dateTimePicker->Visible = false;
 			// 
 			// categoryAdd
@@ -241,7 +247,7 @@ namespace MCloneForms {
 			this->categoryAdd->Location = System::Drawing::Point(266, 29);
 			this->categoryAdd->Name = L"categoryAdd";
 			this->categoryAdd->Size = System::Drawing::Size(255, 20);
-			this->categoryAdd->TabIndex = 9;
+			this->categoryAdd->TabIndex = 2;
 			this->categoryAdd->Tag = L"";
 			this->categoryAdd->Visible = false;
 			// 
@@ -250,7 +256,7 @@ namespace MCloneForms {
 			this->amountAdd->Location = System::Drawing::Point(527, 28);
 			this->amountAdd->Name = L"amountAdd";
 			this->amountAdd->Size = System::Drawing::Size(255, 20);
-			this->amountAdd->TabIndex = 11;
+			this->amountAdd->TabIndex = 3;
 			this->amountAdd->Tag = L"";
 			this->amountAdd->Visible = false;
 			// 
@@ -308,23 +314,24 @@ namespace MCloneForms {
 							 int id;
 
 
+							 System::String^ categoryString = capitalizeString(categoryAdd -> Text);
 							 // Add to controller
 							 tm tm = {0};
-							 convertStringToTM(convertSystemToSTDString(dateTimePicker -> Value.ToString("MM/dd/yyyy")), tm);
+							 convertStringToTM(convertSystemToSTDString(dateTimePicker -> Value.ToString("MM/01/yyyy")), tm);
 							 // Auto save Budget Controller
-							 id = budgetController -> add(tm, convertSystemToSTDString(categoryAdd -> Text), amount);
-							 budgetController->autoSave();
+							 id = budgetController -> add(tm, convertSystemToSTDString(categoryString), amount);
+							 autoSave();
 
 
 							 // Add row to data grid view
 							 int newRowIndex = dataGridView -> Rows -> Add();
-							 setDataGridRowColumns(dataGridView -> Rows[newRowIndex], id, dateTimePicker -> Value.ToString("MMM dd, yyyy"), categoryAdd -> Text, amount);
+							 setDataGridRowColumns(dataGridView -> Rows[newRowIndex], id, dateTimePicker -> Value.ToString("MMMM, yyyy"), categoryString, amount);
 
 							 setAutoComplete();
 							 changeDisplayAddButton(0, -30, 30);
 							 toggleAddTextBoxes();	
 							 resetAddTextBoxes();
-							 sortByEffectiveDate();
+							 sortBy(dataGridView->SortedColumn->Name);
 							 addButton -> Text = "Add";
 						 }
 
@@ -358,7 +365,7 @@ namespace MCloneForms {
 			 }
 
 	private: System::Void saveButton_Click(System::Object^  sender, System::EventArgs^  e) {
-				 budgetController -> save();
+				 save();
 			 }
 
 	private: System::Void dataGridView_CellValueChanged(System::Object^  sender, System::Windows::Forms::DataGridViewCellEventArgs^  e) {
@@ -428,7 +435,7 @@ namespace MCloneForms {
 						 throw std::runtime_error("MainWindow::dataGridView_CellValueChanged : Column header \"" + columnName + "\" not found");
 					 }
 
-					 budgetController -> autoSave();
+					 autoSave();
 				 }
 			 }
 
@@ -442,7 +449,9 @@ namespace MCloneForms {
 				 {
 					 budgetController -> remove(Int32::Parse(dataGridView -> Rows[e->RowIndex] -> Cells["ID"] -> Value ->ToString()));
 					 dataGridView -> Rows -> RemoveAt(e -> RowIndex);
-					 budgetController -> autoSave();
+					 
+					 sortBy(dataGridView->SortedColumn->Name);
+					 autoSave();
 				 }
 			 }
 
@@ -629,10 +638,18 @@ namespace MCloneForms {
 			categoryAdd -> Text = "";
 			amountAdd -> Text = "";
 		}
-		void sortByEffectiveDate()
+		
+		void sortBy(System::String^ columnName)
 		{
-			dataGridView -> Sort(dataGridView->Columns["EffectiveDate"], System::ComponentModel::ListSortDirection::Descending);
-			resetDividers("EffectiveDate");
+			System::ComponentModel::ListSortDirection direction;
+			if (dataGridView->SortOrder == SortOrder::Descending)
+				direction = System::ComponentModel::ListSortDirection::Descending;
+			else
+				direction = System::ComponentModel::ListSortDirection::Ascending;
+
+			
+			dataGridView -> Sort(dataGridView->Columns[columnName], direction);
+			resetDividers(convertSystemToSTDString(columnName));
 		}
 
 		void setDataGridRowColumns(DataGridViewRow^ row, int id, std::string effectiveDate, std::string category, float amount)
@@ -708,9 +725,9 @@ namespace MCloneForms {
 			for (size_t i = 0; i < budgets.size(); i ++)
 			{
 				int newRowIndex = this->dataGridView->Rows->Add();
-				setDataGridRowColumns(this->dataGridView->Rows[newRowIndex], budgets[i].id, convertToString(budgets[i].effectiveDate), budgets[i].category, budgets[i].amount);
+				setDataGridRowColumns(this->dataGridView->Rows[newRowIndex], budgets[i].id, convertToString(budgets[i].effectiveDate, "%B, %Y"), budgets[i].category, budgets[i].amount);
 			}
-			sortByEffectiveDate();
+			sortBy("EffectiveDate");
 		}
 
 		void setAutoComplete()
@@ -724,6 +741,18 @@ namespace MCloneForms {
 			categoryAdd -> AutoCompleteSource = AutoCompleteSource::CustomSource;
 			categoryAdd -> AutoCompleteMode = AutoCompleteMode::SuggestAppend;
 		}
+
+		void save()
+		{
+			budgetController->save();
+			saveButton -> Enabled = false;
+		}
+
+		void autoSave()
+		{
+			budgetController->autoSave();
+			saveButton -> Enabled = true;
+		}
 #pragma endregion
 
 #pragma region Public Methods
@@ -734,7 +763,7 @@ namespace MCloneForms {
 				{
 					if(FormHelper::showYesNoMessage("Budgets Not Saved!","Budgets for profile " + convertToSystemString(budgetController -> getProfileName()) + " have not been saved. Do you wish to save changes and exit?"))
 					{
-						budgetController -> save();
+						save();
 						return true;
 					}
 					else
@@ -751,6 +780,15 @@ namespace MCloneForms {
 				else 
 					return true;
 			}
+	void KeyUp(System::Windows::Forms::KeyEventArgs^  e) {
+				 if (e->KeyCode == Keys::S && e->Control) // Ctrl + S
+				 {
+					 if (saveButton -> Enabled)
+					 {
+						 save();
+					 }
+				 }
+			 }
 #pragma endregion
 	};
 }

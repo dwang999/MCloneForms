@@ -172,3 +172,13 @@ void EntryController::loadBackup()
 std::string EntryController::getProfileName(){
 	return controller.profileName;
 }
+
+std::set<std::string> EntryController::getDistinctCategories()
+{
+	std::set<std::string> categories = std::set<std::string>();
+	for (auto entry : getEntries())
+	{
+		categories.insert(entry.category);
+	}
+	return categories;
+}

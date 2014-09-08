@@ -12,9 +12,10 @@
 
 System::String^ convertToSystemString(const std::string& string);
 std::string convertToString(float f);
-std::string convertToString(time_t date);
+std::string convertToString(time_t date, std::string format);
 std::string convertToCurrencyString(float f);
 std::string convertSystemToSTDString(System::String^ str);
 bool convertStringToTM(std::string str, tm &tm);
+System::String^ capitalizeString(System::String^ str);
 
 #endif

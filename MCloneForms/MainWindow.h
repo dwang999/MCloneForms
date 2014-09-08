@@ -32,6 +32,7 @@ namespace MCloneForms {
 			entriesUserControl ->Init(entryController);
 			budgetController = new BudgetController(profileName);
 			budgetsUserControl ->Init(budgetController);
+			reportsUserControl -> Init(entryController, budgetController);
 			tabControl -> ItemSize = System::Drawing::Size(90, 30);
 
 		}
@@ -61,7 +62,7 @@ namespace MCloneForms {
 
 		System::Windows::Forms::TabControl^  tabControl;
 
-		System::Windows::Forms::TabPage^  Spendings;
+		System::Windows::Forms::TabPage^  Expenses;
 		System::Windows::Forms::TabPage^  Budgets;
 		MCloneForms::EntriesUserControl^  entriesUserControl;
 	    System::Windows::Forms::TabPage^  Earnings;
@@ -85,7 +86,7 @@ namespace MCloneForms {
 		void InitializeComponent(void)
 		{
 			this->tabControl = (gcnew System::Windows::Forms::TabControl());
-			this->Spendings = (gcnew System::Windows::Forms::TabPage());
+			this->Expenses = (gcnew System::Windows::Forms::TabPage());
 			this->entriesUserControl = (gcnew MCloneForms::EntriesUserControl());
 			this->Budgets = (gcnew System::Windows::Forms::TabPage());
 			this->budgetsUserControl = (gcnew MCloneForms::BudgetsUserControl());
@@ -93,14 +94,14 @@ namespace MCloneForms {
 			this->Reports = (gcnew System::Windows::Forms::TabPage());
 			this->reportsUserControl = (gcnew MCloneForms::ReportsUserControl());
 			this->tabControl->SuspendLayout();
-			this->Spendings->SuspendLayout();
+			this->Expenses->SuspendLayout();
 			this->Budgets->SuspendLayout();
 			this->Reports->SuspendLayout();
 			this->SuspendLayout();
 			// 
 			// tabControl
 			// 
-			this->tabControl->Controls->Add(this->Spendings);
+			this->tabControl->Controls->Add(this->Expenses);
 			this->tabControl->Controls->Add(this->Budgets);
 			this->tabControl->Controls->Add(this->Earnings);
 			this->tabControl->Controls->Add(this->Reports);
@@ -111,16 +112,16 @@ namespace MCloneForms {
 			this->tabControl->TabIndex = 7;
 			this->tabControl->TabStop = false;
 			// 
-			// Spendings
+			// Expenses
 			// 
-			this->Spendings->Controls->Add(this->entriesUserControl);
-			this->Spendings->Location = System::Drawing::Point(4, 22);
-			this->Spendings->Name = L"Spendings";
-			this->Spendings->Padding = System::Windows::Forms::Padding(3);
-			this->Spendings->Size = System::Drawing::Size(796, 737);
-			this->Spendings->TabIndex = 0;
-			this->Spendings->Text = L"Spendings";
-			this->Spendings->UseVisualStyleBackColor = true;
+			this->Expenses->Controls->Add(this->entriesUserControl);
+			this->Expenses->Location = System::Drawing::Point(4, 22);
+			this->Expenses->Name = L"Expenses";
+			this->Expenses->Padding = System::Windows::Forms::Padding(3);
+			this->Expenses->Size = System::Drawing::Size(796, 737);
+			this->Expenses->TabIndex = 0;
+			this->Expenses->Text = L"Expenses";
+			this->Expenses->UseVisualStyleBackColor = true;
 			// 
 			// entriesUserControl
 			// 
@@ -182,10 +183,12 @@ namespace MCloneForms {
 			this->BackColor = System::Drawing::SystemColors::Window;
 			this->ClientSize = System::Drawing::Size(800, 761);
 			this->Controls->Add(this->tabControl);
+			this->KeyPreview = true;
 			this->Name = L"MainWindow";
 			this->FormClosing += gcnew System::Windows::Forms::FormClosingEventHandler(this, &MainWindow::MainWindow_FormClosing);
+			this->KeyUp += gcnew System::Windows::Forms::KeyEventHandler(this, &MainWindow::MainWindow_KeyUp);
 			this->tabControl->ResumeLayout(false);
-			this->Spendings->ResumeLayout(false);
+			this->Expenses->ResumeLayout(false);
 			this->Budgets->ResumeLayout(false);
 			this->Reports->ResumeLayout(false);
 			this->ResumeLayout(false);
@@ -203,6 +206,16 @@ namespace MCloneForms {
 					 e->Cancel = true;
 				 }
 			 }
+private: System::Void MainWindow_KeyUp(System::Object^  sender, System::Windows::Forms::KeyEventArgs^  e) {
+			 if (entriesUserControl -> Visible)
+			 {
+				 entriesUserControl -> KeyUp(e);
+			 }
+			 else if (budgetsUserControl -> Visible)
+			 {
+				 budgetsUserControl -> KeyUp(e);
+			 }
+		 }
 #pragma endregion
 };
 

@@ -26,17 +26,22 @@ namespace MCloneForms {
 	private:
 		EntryController *entryController;
 		const int DIVIDER_HEIGHT;
+	private: System::Windows::Forms::DataGridViewTextBoxColumn^  ID;
+	private: System::Windows::Forms::DataGridViewTextBoxColumn^  Date;
+	private: System::Windows::Forms::DataGridViewTextBoxColumn^  Category;
+	private: System::Windows::Forms::DataGridViewTextBoxColumn^  Description;
+	private: System::Windows::Forms::DataGridViewTextBoxColumn^  Amount;
 
 
 
 
 
 	private: System::Windows::Forms::TextBox^  filterTextBox;
-	private: System::Windows::Forms::DataGridViewTextBoxColumn^  ID;
-	private: System::Windows::Forms::DataGridViewTextBoxColumn^  Date;
-	private: System::Windows::Forms::DataGridViewTextBoxColumn^  Description;
-	private: System::Windows::Forms::DataGridViewTextBoxColumn^  Category;
-	private: System::Windows::Forms::DataGridViewTextBoxColumn^  Amount;
+
+
+
+
+
 
 
 
@@ -60,24 +65,27 @@ namespace MCloneForms {
 		void Init(EntryController* tempController)
 		{
 			entryController = tempController;
-			dateTimePicker -> Format = DateTimePickerFormat::Custom;
-			dateTimePicker -> CustomFormat = "ddd, MMMM dd, yyyy";
 
 
 			// Initiallize member variables			
 			if (entryController -> backupExists())
 			{
-				if (FormHelper::showYesNoMessage("MCloneForm Load Backup", "MCloneForm did not close properly. Do you wish to load data from previous session?"))
+				if (FormHelper::showYesNoMessage("MCloneForm Load Backup", "MCloneForm did not close properly. Do you wish to load Expenses from previous session?"))
+				{
 					entryController -> loadBackup();
+					saveButton -> Enabled = true;
+				}
 				else
 				{
 					entryController -> load();
 					entryController -> deleteBackup();
+					saveButton -> Enabled = false;
 				}
 			}
 			else
 			{
 				entryController -> load();
+				saveButton -> Enabled = false;
 			}
 
 			// Output details of entries
@@ -128,8 +136,8 @@ namespace MCloneForms {
 			this->dataGridView = (gcnew System::Windows::Forms::DataGridView());
 			this->ID = (gcnew System::Windows::Forms::DataGridViewTextBoxColumn());
 			this->Date = (gcnew System::Windows::Forms::DataGridViewTextBoxColumn());
-			this->Description = (gcnew System::Windows::Forms::DataGridViewTextBoxColumn());
 			this->Category = (gcnew System::Windows::Forms::DataGridViewTextBoxColumn());
+			this->Description = (gcnew System::Windows::Forms::DataGridViewTextBoxColumn());
 			this->Amount = (gcnew System::Windows::Forms::DataGridViewTextBoxColumn());
 			this->editButton = (gcnew System::Windows::Forms::Button());
 			this->addButton = (gcnew System::Windows::Forms::Button());
@@ -152,7 +160,7 @@ namespace MCloneForms {
 			this->dataGridView->BackgroundColor = System::Drawing::SystemColors::Window;
 			this->dataGridView->ColumnHeadersHeightSizeMode = System::Windows::Forms::DataGridViewColumnHeadersHeightSizeMode::AutoSize;
 			this->dataGridView->Columns->AddRange(gcnew cli::array< System::Windows::Forms::DataGridViewColumn^  >(5) {this->ID, this->Date, 
-				this->Description, this->Category, this->Amount});
+				this->Category, this->Description, this->Amount});
 			this->dataGridView->Location = System::Drawing::Point(3, 28);
 			this->dataGridView->Name = L"dataGridView";
 			this->dataGridView->ReadOnly = true;
@@ -179,18 +187,18 @@ namespace MCloneForms {
 			this->Date->Name = L"Date";
 			this->Date->ReadOnly = true;
 			// 
+			// Category
+			// 
+			this->Category->HeaderText = L"Category";
+			this->Category->Name = L"Category";
+			this->Category->ReadOnly = true;
+			// 
 			// Description
 			// 
 			this->Description->FillWeight = 200;
 			this->Description->HeaderText = L"Description";
 			this->Description->Name = L"Description";
 			this->Description->ReadOnly = true;
-			// 
-			// Category
-			// 
-			this->Category->HeaderText = L"Category";
-			this->Category->Name = L"Category";
-			this->Category->ReadOnly = true;
 			// 
 			// Amount
 			// 
@@ -233,6 +241,8 @@ namespace MCloneForms {
 			// 
 			// dateTimePicker
 			// 
+			this->dateTimePicker->CustomFormat = L"ddd, MMMM dd, yyyy";
+			this->dateTimePicker->Format = System::Windows::Forms::DateTimePickerFormat::Custom;
 			this->dateTimePicker->Location = System::Drawing::Point(5, 28);
 			this->dateTimePicker->Name = L"dateTimePicker";
 			this->dateTimePicker->Size = System::Drawing::Size(255, 20);
@@ -321,24 +331,24 @@ namespace MCloneForms {
 							 amount = stof(convertSystemToSTDString(amountAdd -> Text));
 							 int id;
 
-
+							 System::String^ categoryString = capitalizeString(categoryAdd -> Text);
 							 // Add to controller
 							 tm tm = {0};
 							 convertStringToTM(convertSystemToSTDString(dateTimePicker -> Value.ToString("MM/dd/yyyy")), tm);
 							 // Auto save Entry Controller
-							 id = entryController -> add(tm, convertSystemToSTDString(categoryAdd -> Text), convertSystemToSTDString(descriptionAdd -> Text), amount);
-							 entryController->autoSave();
+							 id = entryController -> add(tm, convertSystemToSTDString(categoryString), convertSystemToSTDString(descriptionAdd -> Text), amount);
+							 autoSave();
 
 
 							 // Add row to data grid view
 							 int newRowIndex = dataGridView -> Rows -> Add();
-							 setDataGridRowColumns(dataGridView -> Rows[newRowIndex], id, dateTimePicker -> Value.ToString("MMM dd, yyyy"), categoryAdd -> Text, descriptionAdd -> Text, amount);
+							 setDataGridRowColumns(dataGridView -> Rows[newRowIndex], id, dateTimePicker -> Value.ToString("MMM dd, yyyy"), categoryString, descriptionAdd -> Text, amount);
 
 							 setAutoComplete();
 							 changeDisplayAddButton(0, -100, 100);
 							 toggleAddTextBoxes();	
 							 resetAddTextBoxes();
-							 sortByDate();
+							 sortBy(dataGridView->SortedColumn->Name);
 							 addButton -> Text = "Add";
 						 }
 
@@ -372,7 +382,7 @@ namespace MCloneForms {
 			 }
 
 	private: System::Void saveButton_Click(System::Object^  sender, System::EventArgs^  e) {
-				 entryController -> save();
+				 save();
 			 }
 
 	private: System::Void dataGridView_CellValueChanged(System::Object^  sender, System::Windows::Forms::DataGridViewCellEventArgs^  e) {
@@ -446,7 +456,7 @@ namespace MCloneForms {
 						 throw std::runtime_error("MainWindow::dataGridView_CellValueChanged : Column header \"" + columnName + "\" not found");
 					 }
 
-					 entryController -> autoSave();
+					 autoSave();
 				 }
 			 }
 
@@ -460,7 +470,8 @@ namespace MCloneForms {
 				 {
 					 entryController -> remove(Int32::Parse(dataGridView -> Rows[e->RowIndex] -> Cells["ID"] -> Value ->ToString()));
 					 dataGridView -> Rows -> RemoveAt(e -> RowIndex);
-					 entryController -> autoSave();
+					 sortBy(dataGridView->SortedColumn->Name);
+					 autoSave();
 				 }
 			 }
 
@@ -651,10 +662,17 @@ namespace MCloneForms {
 			amountAdd -> Text = "";
 			descriptionAdd -> Text = "";
 		}
-		void sortByDate()
+
+		void sortBy(System::String^ columnName)
 		{
-			dataGridView -> Sort(dataGridView->Columns["Date"], System::ComponentModel::ListSortDirection::Descending);
-			resetDividers("Date");
+			System::ComponentModel::ListSortDirection direction;
+			if (dataGridView->SortOrder == SortOrder::Descending)
+				direction = System::ComponentModel::ListSortDirection::Descending;
+			else
+				direction = System::ComponentModel::ListSortDirection::Ascending;
+
+			dataGridView -> Sort(dataGridView->Columns[columnName], direction);
+			resetDividers(convertSystemToSTDString(columnName));
 		}
 
 		void setDataGridRowColumns(DataGridViewRow^ row, int id, std::string date, std::string category, std::string description, float amount)
@@ -739,10 +757,10 @@ namespace MCloneForms {
 			for (size_t i = 0; i < entries.size(); i ++)
 			{
 				int newRowIndex = this->dataGridView->Rows->Add();
-				setDataGridRowColumns(this->dataGridView->Rows[newRowIndex], entries[i].id, convertToString(entries[i].date), entries[i].category, entries[i].description,
+				setDataGridRowColumns(this->dataGridView->Rows[newRowIndex], entries[i].id, convertToString(entries[i].date, "%b %d, %Y"), entries[i].category, entries[i].description,
 					entries[i].amount);
 			}
-			sortByDate();
+			sortBy("Date");
 		}
 
 		void setAutoComplete()
@@ -756,6 +774,18 @@ namespace MCloneForms {
 			categoryAdd -> AutoCompleteSource = AutoCompleteSource::CustomSource;
 			categoryAdd -> AutoCompleteMode = AutoCompleteMode::SuggestAppend;
 		}
+
+		void save()
+		{
+			entryController->save();
+			saveButton -> Enabled = false;
+		}
+
+		void autoSave()
+		{
+			entryController->autoSave();
+			saveButton -> Enabled = true;
+		}
 #pragma endregion
 
 #pragma region Public Methods
@@ -766,7 +796,7 @@ namespace MCloneForms {
 				{
 					if(FormHelper::showYesNoMessage("Entries Not Saved!","Entries for profile " + convertToSystemString(entryController -> getProfileName()) + " have not been saved. Do you wish to save changes and exit?"))
 					{
-						entryController -> save();
+						save();
 						return true;
 					}
 					else
@@ -783,6 +813,15 @@ namespace MCloneForms {
 				else 
 					return true;
 			}
+	void KeyUp(System::Windows::Forms::KeyEventArgs^  e) {
+				 if (e->KeyCode == Keys::S && e->Control) // Ctrl + S
+				 {
+					 if (saveButton -> Enabled)
+					 {
+						 save();
+					 }
+				 }
+			 }
 #pragma endregion
 	};
 }

@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <functional>
 #include <exception>
+#include <set>
 
 // MY CLASS INCLUDES
 #include "Entry.h"
@@ -38,7 +39,9 @@ class EntryController
 		float getAmount(int id);
 		bool backupExists();
 		bool deleteBackup();
+
 		
+		std::set<std::string> getDistinctCategories();
 		std::string getProfileName();
 		std::vector<Entry> getEntries();
 
