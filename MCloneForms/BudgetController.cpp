@@ -148,3 +148,14 @@ void BudgetController::loadBackup()
 std::string BudgetController::getProfileName(){
 	return controller.profileName;
 }
+
+
+std::set<std::string> BudgetController::getDistinctCategories()
+{
+	std::set<std::string> categories = std::set<std::string>();
+	for (auto budget : getBudgets())
+	{
+		categories.insert(budget.category);
+	}
+	return categories;
+}

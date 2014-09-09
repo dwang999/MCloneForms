@@ -3,6 +3,7 @@
 #include "EntriesUserControl.h"
 #include "BudgetsUserControl.h"
 #include "ReportsUserControl.h"
+#include "IncomesUserControl.h"
 
 namespace MCloneForms {
 
@@ -21,6 +22,7 @@ namespace MCloneForms {
 	private:
 		EntryController* entryController;
 		BudgetController* budgetController;
+		IncomeController* incomeController;
 		char * const profileName;
 
 
@@ -32,7 +34,9 @@ namespace MCloneForms {
 			entriesUserControl ->Init(entryController);
 			budgetController = new BudgetController(profileName);
 			budgetsUserControl ->Init(budgetController);
-			reportsUserControl -> Init(entryController, budgetController);
+			incomeController = new IncomeController(profileName);
+			incomesUserControl ->Init(incomeController);
+			reportsUserControl -> Init(entryController, budgetController, incomeController);
 			tabControl -> ItemSize = System::Drawing::Size(90, 30);
 
 		}
@@ -58,6 +62,11 @@ namespace MCloneForms {
 				delete budgetController;
 				budgetController = NULL;
 			}
+			if (incomeController)
+			{
+				delete incomeController;
+				incomeController = NULL;
+			}
 		}
 
 		System::Windows::Forms::TabControl^  tabControl;
@@ -65,10 +74,11 @@ namespace MCloneForms {
 		System::Windows::Forms::TabPage^  Expenses;
 		System::Windows::Forms::TabPage^  Budgets;
 		MCloneForms::EntriesUserControl^  entriesUserControl;
-	    System::Windows::Forms::TabPage^  Earnings;
+	    System::Windows::Forms::TabPage^  Incomes;
 		MCloneForms::BudgetsUserControl^  budgetsUserControl;
 		System::Windows::Forms::TabPage^  Reports;
 		MCloneForms::ReportsUserControl^  reportsUserControl; 
+		MCloneForms::IncomesUserControl^  incomesUserControl;
 
 
 
@@ -90,12 +100,14 @@ namespace MCloneForms {
 			this->entriesUserControl = (gcnew MCloneForms::EntriesUserControl());
 			this->Budgets = (gcnew System::Windows::Forms::TabPage());
 			this->budgetsUserControl = (gcnew MCloneForms::BudgetsUserControl());
-			this->Earnings = (gcnew System::Windows::Forms::TabPage());
+			this->Incomes = (gcnew System::Windows::Forms::TabPage());
+			this->incomesUserControl = (gcnew MCloneForms::IncomesUserControl());
 			this->Reports = (gcnew System::Windows::Forms::TabPage());
 			this->reportsUserControl = (gcnew MCloneForms::ReportsUserControl());
 			this->tabControl->SuspendLayout();
 			this->Expenses->SuspendLayout();
 			this->Budgets->SuspendLayout();
+			this->Incomes->SuspendLayout();
 			this->Reports->SuspendLayout();
 			this->SuspendLayout();
 			// 
@@ -103,7 +115,7 @@ namespace MCloneForms {
 			// 
 			this->tabControl->Controls->Add(this->Expenses);
 			this->tabControl->Controls->Add(this->Budgets);
-			this->tabControl->Controls->Add(this->Earnings);
+			this->tabControl->Controls->Add(this->Incomes);
 			this->tabControl->Controls->Add(this->Reports);
 			this->tabControl->Location = System::Drawing::Point(-1, 0);
 			this->tabControl->Name = L"tabControl";
@@ -148,15 +160,23 @@ namespace MCloneForms {
 			this->budgetsUserControl->Size = System::Drawing::Size(788, 715);
 			this->budgetsUserControl->TabIndex = 0;
 			// 
-			// Earnings
+			// Incomes
 			// 
-			this->Earnings->Location = System::Drawing::Point(4, 22);
-			this->Earnings->Name = L"Earnings";
-			this->Earnings->Padding = System::Windows::Forms::Padding(3);
-			this->Earnings->Size = System::Drawing::Size(796, 737);
-			this->Earnings->TabIndex = 2;
-			this->Earnings->Text = L"Earnings";
-			this->Earnings->UseVisualStyleBackColor = true;
+			this->Incomes->Controls->Add(this->incomesUserControl);
+			this->Incomes->Location = System::Drawing::Point(4, 22);
+			this->Incomes->Name = L"Incomes";
+			this->Incomes->Padding = System::Windows::Forms::Padding(3);
+			this->Incomes->Size = System::Drawing::Size(796, 737);
+			this->Incomes->TabIndex = 2;
+			this->Incomes->Text = L"Incomes";
+			this->Incomes->UseVisualStyleBackColor = true;
+			// 
+			// incomesUserControl
+			// 
+			this->incomesUserControl->Location = System::Drawing::Point(3, 6);
+			this->incomesUserControl->Name = L"incomesUserControl";
+			this->incomesUserControl->Size = System::Drawing::Size(788, 715);
+			this->incomesUserControl->TabIndex = 0;
 			// 
 			// Reports
 			// 
@@ -186,10 +206,11 @@ namespace MCloneForms {
 			this->KeyPreview = true;
 			this->Name = L"MainWindow";
 			this->FormClosing += gcnew System::Windows::Forms::FormClosingEventHandler(this, &MainWindow::MainWindow_FormClosing);
-			this->KeyUp += gcnew System::Windows::Forms::KeyEventHandler(this, &MainWindow::MainWindow_KeyUp);
+			this->KeyDown += gcnew System::Windows::Forms::KeyEventHandler(this, &MainWindow::MainWindow_KeyDown);
 			this->tabControl->ResumeLayout(false);
 			this->Expenses->ResumeLayout(false);
 			this->Budgets->ResumeLayout(false);
+			this->Incomes->ResumeLayout(false);
 			this->Reports->ResumeLayout(false);
 			this->ResumeLayout(false);
 
@@ -205,15 +226,26 @@ namespace MCloneForms {
 				 {
 					 e->Cancel = true;
 				 }
+				 if(!incomesUserControl->closeUserControl())
+				 {
+					 e->Cancel = true;
+				 }
 			 }
-private: System::Void MainWindow_KeyUp(System::Object^  sender, System::Windows::Forms::KeyEventArgs^  e) {
-			 if (entriesUserControl -> Visible)
+private: System::Void MainWindow_KeyDown(System::Object^  sender, System::Windows::Forms::KeyEventArgs^  e) {
+			 if (CanFocus)
 			 {
-				 entriesUserControl -> KeyUp(e);
-			 }
-			 else if (budgetsUserControl -> Visible)
-			 {
-				 budgetsUserControl -> KeyUp(e);
+				 if (entriesUserControl -> Visible)
+				 {
+					 entriesUserControl -> KeyDown(e);
+				 }
+				 else if (budgetsUserControl -> Visible)
+				 {
+					 budgetsUserControl -> KeyDown(e);
+				 }
+				 else if (incomesUserControl -> Visible)
+				 {
+					 incomesUserControl -> KeyDown(e);
+				 }
 			 }
 		 }
 #pragma endregion

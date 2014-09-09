@@ -90,8 +90,8 @@
     <ClCompile Include="AssemblyInfo.cpp" />
     <ClCompile Include="Budget.cpp" />
     <ClCompile Include="BudgetController.cpp" />
-    <ClCompile Include="Earning.cpp" />
-    <ClCompile Include="EarningController.cpp" />
+    <ClCompile Include="Income.cpp" />
+    <ClCompile Include="IncomeController.cpp" />
     <ClCompile Include="Entry.cpp" />
     <ClCompile Include="EntryController.cpp" />
     <ClCompile Include="FormHelper.cpp" />
@@ -111,14 +111,17 @@
     <ClInclude Include="Controller.h" />
     <ClInclude Include="CueTextBox.h" />
     <ClInclude Include="DebugOut.h" />
-    <ClInclude Include="Earning.h" />
-    <ClInclude Include="EarningController.h" />
+    <ClInclude Include="Income.h" />
+    <ClInclude Include="IncomeController.h" />
     <ClInclude Include="EntriesUserControl.h">
       <FileType>CppControl</FileType>
     </ClInclude>
     <ClInclude Include="Entry.h" />
     <ClInclude Include="EntryController.h" />
     <ClInclude Include="FormHelper.h" />
+    <ClInclude Include="IncomesUserControl.h">
+      <FileType>CppControl</FileType>
+    </ClInclude>
     <ClInclude Include="MainWindow.h">
       <FileType>CppForm</FileType>
     </ClInclude>
@@ -141,6 +144,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="EntriesUserControl.resx">
       <DependentUpon>EntriesUserControl.h</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="IncomesUserControl.resx">
+      <DependentUpon>IncomesUserControl.h</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="MainWindow.resx">
       <DependentUpon>MainWindow.h</DependentUpon>

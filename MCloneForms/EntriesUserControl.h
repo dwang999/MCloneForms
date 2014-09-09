@@ -263,6 +263,7 @@ namespace MCloneForms {
 			this->descriptionAdd->Location = System::Drawing::Point(4, 54);
 			this->descriptionAdd->Multiline = true;
 			this->descriptionAdd->Name = L"descriptionAdd";
+			this->descriptionAdd->ScrollBars = System::Windows::Forms::ScrollBars::Vertical;
 			this->descriptionAdd->Size = System::Drawing::Size(779, 60);
 			this->descriptionAdd->TabIndex = 12;
 			this->descriptionAdd->Tag = L"";
@@ -579,7 +580,7 @@ namespace MCloneForms {
 					 }
 					 success = true;
 				 }
-				 if(Regex::IsMatch(filterString,".*:.*"))
+				 else if(Regex::IsMatch(filterString,".*:.*"))
 				 {
 					 int index = filterString -> IndexOf(":");
 					 String^ category = filterString -> Substring(0, index) -> Trim();
@@ -813,13 +814,21 @@ namespace MCloneForms {
 				else 
 					return true;
 			}
-	void KeyUp(System::Windows::Forms::KeyEventArgs^  e) {
+	void KeyDown(System::Windows::Forms::KeyEventArgs^  e) {
 				 if (e->KeyCode == Keys::S && e->Control) // Ctrl + S
 				 {
 					 if (saveButton -> Enabled)
 					 {
 						 save();
 					 }
+				 }
+				 else if (e->KeyCode == Keys::E && e->Control) // Ctrl + E
+				 {
+					 editButton->PerformClick();
+				 }
+				 else if ((this->ActiveControl == amountAdd || this->ActiveControl == dateTimePicker || this->ActiveControl == categoryAdd) && e->KeyCode == Keys::Enter)
+				 {
+					 addButton->PerformClick();
 				 }
 			 }
 #pragma endregion

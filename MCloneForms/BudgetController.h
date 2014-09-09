@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <functional>
 #include <exception>
+#include <set>
 
 // MY CLASS INCLUDES
 #include "Budget.h"
@@ -37,6 +38,7 @@ class BudgetController
 		bool backupExists();
 		bool deleteBackup();
 		
+		std::set<std::string> getDistinctCategories();
 		std::string getProfileName();
 		std::vector<Budget> getBudgets();
 
