@@ -377,7 +377,9 @@ namespace MCloneForms {
 						 {
 							 char buff[20];
 							 time_t tt = incomeController->getEffectiveDate(Int32::Parse(dataGridView -> Rows[e->RowIndex] -> Cells["ID"] -> Value ->ToString()));
-							 strftime(buff, 20,"%b %d, %Y", localtime(&tt));
+							 tm time;
+							 localtime_s(&time, &tt);
+							 strftime(buff, 20,"%b %d, %Y", &time);
 							 dataGridView -> Rows[e->RowIndex] -> Cells[e->ColumnIndex] -> Value = convertToSystemString(buff); 
 							 FormHelper::showErrorMessage("Edit Error", "Date value is not a valid Date");
 						 }
@@ -650,12 +652,12 @@ namespace MCloneForms {
 
 		void rebindDataGridView()
 		{
-			std::vector<Income> incomes = incomeController -> getIncomes();
+			std::vector<Income*> incomes = incomeController -> getIncomes();
 			dataGridView -> Rows -> Clear();
 			for (size_t i = 0; i < incomes.size(); i ++)
 			{
 				int newRowIndex = this->dataGridView->Rows->Add();
-				setDataGridRowColumns(this->dataGridView->Rows[newRowIndex], incomes[i].id, convertToString(incomes[i].effectiveDate, "%B, %Y"), incomes[i].amount);
+				setDataGridRowColumns(this->dataGridView->Rows[newRowIndex], incomes[i]->id, convertToString(incomes[i]->effectiveDate, "%B, %Y"), incomes[i]->amount);
 			}
 			sortBy("EffectiveDate");
 		}

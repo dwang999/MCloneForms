@@ -90,6 +90,8 @@
     <ClCompile Include="AssemblyInfo.cpp" />
     <ClCompile Include="Budget.cpp" />
     <ClCompile Include="BudgetController.cpp" />
+    <ClCompile Include="Controller.cpp" />
+    <ClCompile Include="ControllerData.cpp" />
     <ClCompile Include="Income.cpp" />
     <ClCompile Include="IncomeController.cpp" />
     <ClCompile Include="Entry.cpp" />
@@ -109,6 +111,7 @@
       <FileType>CppControl</FileType>
     </ClInclude>
     <ClInclude Include="Controller.h" />
+    <ClInclude Include="ControllerData.h" />
     <ClInclude Include="CueTextBox.h" />
     <ClInclude Include="DebugOut.h" />
     <ClInclude Include="Income.h" />
@@ -154,9 +157,6 @@
     <EmbeddedResource Include="ReportsUserControl.resx">
       <DependentUpon>ReportsUserControl.h</DependentUpon>
     </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Controller.tcc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

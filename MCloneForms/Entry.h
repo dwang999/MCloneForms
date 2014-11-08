@@ -9,22 +9,24 @@
 #include <iomanip>
 #include <vector>
 
-class Entry
-{
-	friend std::ostream &operator<<(std::ostream &os, const Entry &entry);
+#include "ControllerData.h"
 
+class Entry : public ControllerData
+{
 public:
+	static const int NUMOFMEMBERVARIABLES = 5;
+
 	Entry(int id, time_t date, std::string category, 
 		std::string description, float amount);
 	~Entry();
+	
+	std::string toString() const;
 
-	int id;
 	std::time_t date;
 	std::string category;
 	std::string description;
 	float amount;
-	static const int NUMOFMEMBERVARIABLES = 5;
-	static Entry parseTokens(std::string str);
+
 
 
 

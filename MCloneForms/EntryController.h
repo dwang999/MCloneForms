@@ -18,17 +18,14 @@
 #include "String.h"
 
 
-class EntryController
+class EntryController : public Controller
 {
 	public:
 		EntryController(std::string profileName);
+		~EntryController();
 		int add(time_t date, std::string category, std::string description, float amount);
 		int add(tm date, std::string category, std::string description, float amount);
-		void remove(int id);
-		void save();
-		void autoSave();
-		void load();
-		void loadBackup();
+
 		void modifyDate(int id, tm date);
 		void modifyCategory(int id, std::string category);
 		void modifyDescription(int id, std::string description);
@@ -37,16 +34,13 @@ class EntryController
 		std::string getCategory(int id);
 		std::string getDescription(int id);
 		float getAmount(int id);
-		bool backupExists();
-		bool deleteBackup();
-
+		
+		ControllerData* parseTokens(std::string str);
 		
 		std::set<std::string> getDistinctCategories();
 		std::string getProfileName();
-		std::vector<Entry> getEntries();
+		std::vector<Entry*> getEntries();
 
-	private:
-		Controller<Entry> controller;
 
 };
 

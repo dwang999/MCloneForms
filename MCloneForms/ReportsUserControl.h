@@ -273,27 +273,27 @@ namespace MCloneForms {
 				 reportChart -> ChartAreas["ChartArea"] -> AxisY -> Title = "Amount";
 				 reportChart -> ChartAreas["ChartArea"] -> AxisX -> Title = "Date";
 
-				 std::vector<Entry> entries = entryController->getEntries();
+				 std::vector<Entry*> entries = entryController->getEntries();
 				 std::map<time_t, float> entryData = std::map<time_t, float>();
-				 std::vector<Income> incomes = incomeController->getIncomes();
+				 std::vector<Income*> incomes = incomeController->getIncomes();
 				 std::map<time_t, float> incomeData = std::map<time_t, float>();
 				 
 				 for (size_t i = 0; i < entries.size(); i++)
 				 {
 					 // Set day to the first
-					 const time_t entryDate = entries[i].date;
-					 tm *tm;
-					 tm = localtime (&entryDate);
-					 tm -> tm_mday = 1;
-					 formatTMMonthDayYear(*tm);
+					 const time_t entryDate = entries[i]->date;
+					 tm tm;
+					 localtime_s(&tm, &entryDate);
+					 tm.tm_mday = 1;
+					 formatTMMonthDayYear(tm);
 					 time_t date;
-					 date = mktime(tm);
+					 date = mktime(&tm);
 					 if (entryData.find(date) == entryData.end())
 					 {
-						 entryData.insert(std::pair<time_t, float>(date, entries[i].amount));
+						 entryData.insert(std::pair<time_t, float>(date, entries[i]->amount));
 					 }
 					 else
-						 entryData[date] += entries[i].amount;
+						 entryData[date] += entries[i]->amount;
 				 }
 
 				 // Add income up based on entry date
@@ -306,8 +306,8 @@ namespace MCloneForms {
 					 std::pair<time_t, float> max = std::pair<time_t, float>(0, 0);
 					 for (auto income : incomes)
 					 {
-						 if (income.effectiveDate <= entry.first && income.effectiveDate > max.first)
-							 max = std::pair<time_t, float>(income.effectiveDate, income.amount);
+						 if (income->effectiveDate <= entry.first && income->effectiveDate > max.first)
+							 max = std::pair<time_t, float>(income->effectiveDate, income->amount);
 					 }
 
 					 incomeData[entry.first] += max.second;
@@ -379,26 +379,26 @@ namespace MCloneForms {
 				 reportChart -> ChartAreas["ChartArea"]->AxisY->LabelStyle->Format = "$ #";
 
 				 // create a time_t that is month parameter + 1 month
-				 tm *temp;
-				 temp = localtime(&month);
-				 temp -> tm_mon = (temp->tm_mon + 1);
-				 time_t endOfMonth = mktime(temp);
+				 tm temp;
+				 localtime_s(&temp, &month);
+				 temp.tm_mon = (temp.tm_mon + 1);
+				 time_t endOfMonth = mktime(&temp);
 
-				 std::vector<Entry> entries = entryController->getEntries();
+				 std::vector<Entry*> entries = entryController->getEntries();
 				 std::map<std::string, float> categoryData = std::map<std::string, float>();
-				 std::vector<Budget> budgets = budgetController->getBudgets();
+				 std::vector<Budget*> budgets = budgetController->getBudgets();
 				 std::map<std::string, float> budgetData = std::map<std::string, float>();
 
 				 for (size_t i = 0; i < entries.size(); i++)
 				 {
-					 if (entries[i].date < endOfMonth && entries[i].date >= month)
+					 if (entries[i]->date < endOfMonth && entries[i]->date >= month)
 					 {
-						 if (categoryData.find(entries[i].category) == categoryData.end())
+						 if (categoryData.find(entries[i]->category) == categoryData.end())
 						 {
-							 categoryData.insert(std::pair<std::string, float>(entries[i].category, entries[i].amount));
+							 categoryData.insert(std::pair<std::string, float>(entries[i]->category, entries[i]->amount));
 						 }
 						 else
-							 categoryData[entries[i].category] += entries[i].amount;
+							 categoryData[entries[i]->category] += entries[i]->amount;
 					 }
 				 }
 
@@ -411,8 +411,8 @@ namespace MCloneForms {
 					 std::pair<time_t, float> max = std::pair<time_t, float>(0, 0);
 					 for (auto budget : budgets)
 					 {
-						 if (budget.category == category.first && budget.effectiveDate <= month && budget.effectiveDate > max.first)
-							 max = std::pair<time_t, float>(budget.effectiveDate, budget.amount);
+						 if (budget->category == category.first && budget->effectiveDate <= month && budget->effectiveDate > max.first)
+							 max = std::pair<time_t, float>(budget->effectiveDate, budget->amount);
 					 }
 
 					 // If there is not budget for category then assign it to 0
@@ -424,19 +424,19 @@ namespace MCloneForms {
 
 				 for (size_t i = 0; i < budgets.size(); i++)
 				 {
-					 if (budgetData.find(budgets[i].category) == budgetData.end())
+					 if (budgetData.find(budgets[i]->category) == budgetData.end())
 					 {
-						 std::string hi = budgets[i].category;
+						 std::string hi = budgets[i]->category;
 						 // Find budget entry that has greatest date that is less than entry date
 						 std::pair<time_t, float> max = std::pair<time_t, float>(0, 0);
 						 for (auto budget : budgets)
 						 {
-							 if (budget.category == budgets[i].category && budget.effectiveDate <= month && budget.effectiveDate > max.first)
-								 max = std::pair<time_t, float>(budget.effectiveDate, budget.amount);
+							 if (budget->category == budgets[i]->category && budget->effectiveDate <= month && budget->effectiveDate > max.first)
+								 max = std::pair<time_t, float>(budget->effectiveDate, budget->amount);
 						 }
 
-						 budgetData.insert(std::pair<std::string, float>(budgets[i].category, max.second));
-						 categoryData.insert(std::pair<std::string, float>(budgets[i].category, 0));
+						 budgetData.insert(std::pair<std::string, float>(budgets[i]->category, max.second));
+						 categoryData.insert(std::pair<std::string, float>(budgets[i]->category, 0));
 					 }		
 				 }
 
@@ -491,27 +491,27 @@ namespace MCloneForms {
 				 reportChart -> ChartAreas["ChartArea"] -> AxisY -> Title = "Amount";
 				 reportChart -> ChartAreas["ChartArea"] -> AxisX -> Title = "Date";
 
-				 std::vector<Entry> entries = entryController->getEntries();
+				 std::vector<Entry*> entries = entryController->getEntries();
 				 std::map<time_t, float> entryData = std::map<time_t, float>();
-				 std::vector<Budget> budgets = budgetController->getBudgets();
+				 std::vector<Budget*> budgets = budgetController->getBudgets();
 				 std::map<time_t, float> budgetData = std::map<time_t, float>();
 				 
 				 for (size_t i = 0; i < entries.size(); i++)
 				 {
 					 // Set day to the first
-					 const time_t entryDate = entries[i].date;
-					 tm *tm;
-					 tm = localtime (&entryDate);
-					 tm -> tm_mday = 1;
-					 formatTMMonthDayYear(*tm);
+					 const time_t entryDate = entries[i]->date;
+					 tm tm;
+					 localtime_s(&tm, &entryDate);
+					 tm.tm_mday = 1;
+					 formatTMMonthDayYear(tm);
 					 time_t date;
-					 date = mktime(tm);
+					 date = mktime(&tm);
 					 if (entryData.find(date) == entryData.end())
 					 {
-						 entryData.insert(std::pair<time_t, float>(date, entries[i].amount));
+						 entryData.insert(std::pair<time_t, float>(date, entries[i]->amount));
 					 }
 					 else
-						 entryData[date] += entries[i].amount;
+						 entryData[date] += entries[i]->amount;
 				 }
 
 				 // Add budgets up based on categories in entries
@@ -526,8 +526,8 @@ namespace MCloneForms {
 						 std::pair<time_t, float> max = std::pair<time_t, float>(0, 0);
 						 for (auto budget : budgets)
 						 {
-							 if (budget.category == category && budget.effectiveDate <= entry.first && budget.effectiveDate > max.first)
-								 max = std::pair<time_t, float>(budget.effectiveDate, budget.amount);
+							 if (budget->category == category && budget->effectiveDate <= entry.first && budget->effectiveDate > max.first)
+								 max = std::pair<time_t, float>(budget->effectiveDate, budget->amount);
 						 }
 
 						 budgetData[entry.first] += max.second;
@@ -549,8 +549,8 @@ namespace MCloneForms {
 							 std::pair<time_t, float> max = std::pair<time_t, float>(0, 0);
 							 for (auto budget : budgets)
 							 {
-								if (budget.category == category && budget.effectiveDate <= budgetDataEntry.first && budget.effectiveDate > max.first)
-									max = std::pair<time_t, float>(budget.effectiveDate, budget.amount);
+								if (budget->category == category && budget->effectiveDate <= budgetDataEntry.first && budget->effectiveDate > max.first)
+									max = std::pair<time_t, float>(budget->effectiveDate, budget->amount);
 							 }
 
 							 budgetData[budgetDataEntry.first] += max.second;
@@ -603,17 +603,17 @@ namespace MCloneForms {
 				 }
 
 				 entryDates = new std::set<time_t>();
-				 std::vector<Entry> entries = entryController->getEntries();
+				 std::vector<Entry*> entries = entryController->getEntries();
 				 for (size_t i = 0; i < entries.size(); i++)
 				 {
 					 // Set day to the first
-					 const time_t entryDate = entries[i].date;
-					 tm *tm;
-					 tm = localtime (&entryDate);
-					 tm -> tm_mday = 1;
-					 formatTMMonthDayYear(*tm);
+					 const time_t entryDate = entries[i]->date;
+					 tm tm;
+					 localtime_s (&tm, &entryDate);
+					 tm.tm_mday = 1;
+					 formatTMMonthDayYear(tm);
 					 time_t date;
-					 date = mktime(tm);
+					 date = mktime(&tm);
 					 entryDates->insert(date);
 				 }
 			 }

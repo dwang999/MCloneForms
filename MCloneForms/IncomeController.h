@@ -18,30 +18,24 @@
 #include "String.h"
 
 
-class IncomeController
+
+class IncomeController: public Controller
 {
 	public:
 		IncomeController(std::string profileName);
+		~IncomeController();
 		int add(time_t effectiveDate, float amount);
 		int add(tm effectiveDate, float amount);
-		void remove(int id);
-		void save();
-		void autoSave();
-		void load();
-		void loadBackup();
 		void modifyEffectiveDate(int id, tm effectiveDate);
 		void modifyAmount(int id, float amount);
 		time_t getEffectiveDate(int id);
 		float getAmount(int id);
-		bool backupExists();
-		bool deleteBackup();
-
+		
+		ControllerData* parseTokens(std::string str);
 		
 		std::string getProfileName();
-		std::vector<Income> getIncomes();
+		std::vector<Income*> getIncomes();
 
-	private:
-		Controller<Income> controller;
 
 };
 

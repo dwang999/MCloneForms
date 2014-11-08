@@ -9,20 +9,27 @@
 #include <iomanip>
 #include <vector>
 
-class Budget
+// MY CLASS INCLUDES
+#include "ControllerData.h"
+
+
+class Budget : public ControllerData
 {
-	friend std::ostream &operator<<(std::ostream &os, const Budget &entry);
 
 public:
+	// 3 Member variables from Budget and 1 from ControllerData
+	static const int NUMOFMEMBERVARIABLES = 4; 
+	
+
 	Budget(int id, time_t effectiveDate, std::string category, float amount);
 	~Budget();
 
-	int id;
+	std::string toString() const;
+
 	std::time_t effectiveDate;
 	std::string category;
 	float amount;
-	static const int NUMOFMEMBERVARIABLES = 4;
-	static Budget parseTokens(std::string str);
+
 
 
 

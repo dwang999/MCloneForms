@@ -6,68 +6,45 @@
 // Constructors
 
 IncomeController::IncomeController(std::string profileName) : 
-	controller(profileName, "Incomes", "Profiles/" + profileName + "/Incomes.txt", "Profiles/" + profileName + "/Incomes-Backup.txt") {}
+	Controller(profileName, "Incomes", "Profiles/" + profileName + "/Incomes.txt", "Profiles/" + profileName + "/Incomes-Backup.txt") {}
+
+IncomeController::~IncomeController(){}
 
 // Methods
-std::vector<Income> IncomeController::getIncomes()
+std::vector<Income*> IncomeController::getIncomes()
 {
-	return controller.vectorT;
+	std::vector<Income*> incomes;
+	for (unsigned int i = 0; i < controller.size(); i++)
+	{		
+		incomes.push_back((Income*)controller[i]);
+	}
+	return incomes;
 }
 
 int IncomeController::add(time_t effectiveDate, float amount)
 {
-	int id = controller.generateID();
-	controller.add(Income(id, effectiveDate, amount));
+	int id = generateID();
+	addData(new Income(id, effectiveDate, amount));
 	return id;
 }
 
 
 int IncomeController::add(tm effectiveDate, float amount)
 {
-	int id = controller.generateID();
-	controller.add(Income(id, mktime(&effectiveDate), amount));
+	int id = generateID();
+	addData(new Income(id, mktime(&effectiveDate), amount));
 	return id;
-}
-
-void IncomeController::remove(int id){
-	bool success = false;
-	for (size_t i = 0; i < controller.vectorT.size(); i++)
-	{
-		if (controller.vectorT[i].id == id)
-		{
-			controller.remove(i);
-			success = true;
-			break;
-		}
-	}
-
-	if (!success)
-		throw std::invalid_argument("IncomeController::remove : id " + convertSystemToSTDString(id.ToString()) + " not found");
-
-}
-void IncomeController::save(){
-	controller.save();
-}
-void IncomeController::autoSave(){
-	controller.autoSave();
-
-}
-bool IncomeController::backupExists(){
-	return controller.backupExists();
-
-}
-bool IncomeController::deleteBackup(){
-	return controller.deleteBackup();
 }
 
 void IncomeController::modifyEffectiveDate(int id, tm effectiveDate)
 {
 	bool success = false;
-	for (Income &income : controller.vectorT)
+	for (ControllerData* data : controller)
 	{
-		if (income.id == id)
+		if (data->id == id)
 		{
-			income.effectiveDate = mktime(&effectiveDate);
+			Income *income = (Income*) data;
+			income->effectiveDate = mktime(&effectiveDate);
 			success = true;
 			break;
 		}
@@ -81,11 +58,12 @@ void IncomeController::modifyEffectiveDate(int id, tm effectiveDate)
 void IncomeController::modifyAmount(int id, float amount)
 {
 	bool success = false;
-	for (Income &income : controller.vectorT)
+	for (ControllerData* data : controller)
 	{
-		if (income.id == id)
+		if (data->id == id)
 		{
-			income.amount = amount;
+			Income *income = (Income*) data;
+			income->amount = amount;
 			success = true;
 			break;
 		}
@@ -96,32 +74,78 @@ void IncomeController::modifyAmount(int id, float amount)
 
 
 time_t IncomeController::getEffectiveDate(int id){
-	for (Income income : controller.vectorT)
+	for (ControllerData* data : controller)
 	{
-		if (income.id == id)
-			return income.effectiveDate;
+		if (data->id == id)
+		{
+			Income *income = (Income*) data;
+			return income->effectiveDate;
+		}
 	}
 
 	throw std::invalid_argument("IncomeController::geteffectiveDate : id " + convertSystemToSTDString(id.ToString()) + " not found");
 }
 float IncomeController::getAmount(int id){
-	for (Income income : controller.vectorT)
+	for (ControllerData* data : controller)
 	{
-		if (income.id == id)
-			return income.amount;
+		if (data->id == id)
+		{
+			Income *income = (Income*) data;
+			return income->amount;
+		}
 	}
 	throw std::invalid_argument("IncomeController::getAmount : id " + convertSystemToSTDString(id.ToString()) + " not found");
 }
 
-void IncomeController::load()
-{
-	controller.loadController(controller.fileName);
-}
-void IncomeController::loadBackup()
-{
-	controller.loadController(controller.backupFileName);
-}
 
 std::string IncomeController::getProfileName(){
-	return controller.profileName;
+	return profileName;
+}
+
+ControllerData* IncomeController::parseTokens(std::string str)
+{	
+	// Get Tokens
+	std::string delim = "/";
+	std::vector<std::string> tokens;
+	tokens.reserve(Income::NUMOFMEMBERVARIABLES);
+	unsigned int delimPos = str.find(delim);
+	int start = 0;
+	while (delimPos != std::string::npos)
+	{
+		std::string token = str.substr(start, delimPos - start);
+		start = delimPos + 1;
+		delimPos = str.find(delim, start);
+		tokens.push_back(token);
+	}
+
+	if (tokens.size() != Income::NUMOFMEMBERVARIABLES)
+	{
+		throw std::runtime_error("IncomeController::parseTokens : Incorrect number of variables in earnings");
+	}
+
+	// Parse tokens 
+	int id;
+	std::time_t effectiveDate;
+	float amount;
+
+
+	// Format: [ID]/[effectiveDate]/[Amount]
+
+	for (int i = 0; i < Income::NUMOFMEMBERVARIABLES; i++)
+	{
+		switch (i)
+		{
+		case 0: // id
+			id = atoi(tokens[i].c_str());
+			break;
+		case 1: // effectiveDate
+			effectiveDate = std::stoi(tokens[i]);
+			break;
+		case 2: // amount
+			amount = std::stof(tokens[i]);
+			break;
+		}
+	}
+
+	return new Income(id, effectiveDate, amount);
 }

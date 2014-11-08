@@ -413,7 +413,9 @@ namespace MCloneForms {
 						 {
 							 char buff[20];
 							 time_t tt = entryController->getDate(Int32::Parse(dataGridView -> Rows[e->RowIndex] -> Cells["ID"] -> Value ->ToString()));
-							 strftime(buff, 20,"%b %d, %Y", localtime(&tt));
+							 tm time;
+							 localtime_s(&time, &tt);
+							 strftime(buff, 20,"%b %d, %Y", &time);
 							 dataGridView -> Rows[e->RowIndex] -> Cells[e->ColumnIndex] -> Value = convertToSystemString(buff); 
 							 FormHelper::showErrorMessage("Edit Error", "Date value is not a valid Date");
 						 }
@@ -753,13 +755,13 @@ namespace MCloneForms {
 
 		void rebindDataGridView()
 		{
-			std::vector<Entry> entries = entryController -> getEntries();
+			std::vector<Entry*> entries = entryController -> getEntries();
 			dataGridView -> Rows -> Clear();
 			for (size_t i = 0; i < entries.size(); i ++)
 			{
 				int newRowIndex = this->dataGridView->Rows->Add();
-				setDataGridRowColumns(this->dataGridView->Rows[newRowIndex], entries[i].id, convertToString(entries[i].date, "%b %d, %Y"), entries[i].category, entries[i].description,
-					entries[i].amount);
+				setDataGridRowColumns(this->dataGridView->Rows[newRowIndex], entries[i]->id, convertToString(entries[i]->date, "%b %d, %Y"), entries[i]->category, entries[i]->description,
+					entries[i]->amount);
 			}
 			sortBy("Date");
 		}

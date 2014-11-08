@@ -9,19 +9,21 @@
 #include <iomanip>
 #include <vector>
 
-class Income
+#include "ControllerData.h"
+
+class Income : public ControllerData
 {
 	friend std::ostream &operator<<(std::ostream &os, const Income &entry);
 
 public:
+	static const int NUMOFMEMBERVARIABLES = 3;
 	Income(int id, time_t effectiveDate, float amount);
 	~Income();
 	
-	int id;
+	std::string toString() const;
+
 	std::time_t effectiveDate;
 	float amount;
-	static const int NUMOFMEMBERVARIABLES = 3;
-	static Income parseTokens(std::string str);
 
 
 

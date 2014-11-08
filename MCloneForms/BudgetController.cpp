@@ -6,68 +6,45 @@
 // Constructors
 
 BudgetController::BudgetController(std::string profileName) : 
-	controller(profileName, "Budget", "Profiles/" + profileName + "/Budget.txt", "Profiles/" + profileName + "/Budget-Backup.txt") {}
+	Controller(profileName, "Budget", "Profiles/" + profileName + "/Budget.txt", "Profiles/" + profileName + "/Budget-Backup.txt") {}
+
+BudgetController::~BudgetController(){}
 
 // Methods
-std::vector<Budget> BudgetController::getBudgets()
+std::vector<Budget*> BudgetController::getBudgets()
 {
-	return controller.vectorT;
+	std::vector<Budget*> budgets;
+	for (unsigned int i = 0; i < controller.size(); i++)
+	{		
+		budgets.push_back((Budget*)controller[i]);
+	}
+	return budgets;
 }
 
 int BudgetController::add(time_t effectiveDate, std::string category, float amount)
 {
-	int id = controller.generateID();
-	controller.add(Budget(id, effectiveDate, category, amount));
+	int id = generateID();	
+	addData(new Budget(id, effectiveDate, category, amount));
 	return id;
 }
 
 
 int BudgetController::add(tm effectiveDate, std::string category, float amount)
 {
-	int id = controller.generateID();
-	controller.add(Budget(id, mktime(&effectiveDate), category, amount));
+	int id = generateID();
+	addData(new Budget(id, mktime(&effectiveDate), category, amount));
 	return id;
-}
-
-void BudgetController::remove(int id){
-	bool success = false;
-	for (size_t i = 0; i < controller.vectorT.size(); i++)
-	{
-		if (controller.vectorT[i].id == id)
-		{
-			controller.remove(i);
-			success = true;
-			break;
-		}
-	}
-
-	if (!success)
-		throw std::invalid_argument("BudgetController::remove : id " + convertSystemToSTDString(id.ToString()) + " not found");
-
-}
-void BudgetController::save(){
-	controller.save();
-}
-void BudgetController::autoSave(){
-	controller.autoSave();
-
-}
-bool BudgetController::backupExists(){
-	return controller.backupExists();
-
-}
-bool BudgetController::deleteBackup(){
-	return controller.deleteBackup();
 }
 
 void BudgetController::modifyEffectiveDate(int id, tm effectiveDate)
 {
 	bool success = false;
-	for (Budget &budget : controller.vectorT)
+	for (ControllerData* data : controller)
 	{
-		if (budget.id == id)
+		if (data->id == id)
 		{
-			budget.effectiveDate = mktime(&effectiveDate);
+			Budget *budget = (Budget*) data;
+			budget->effectiveDate = mktime(&effectiveDate);
 			success = true;
 			break;
 		}
@@ -80,11 +57,12 @@ void BudgetController::modifyEffectiveDate(int id, tm effectiveDate)
 void BudgetController::modifyCategory(int id, std::string category)
 {
 	bool success = false;
-	for (Budget &budget : controller.vectorT)
+	for (ControllerData* data : controller)
 	{
-		if (budget.id == id)
+		if (data->id == id)
 		{
-			budget.category = category;
+			Budget *budget = (Budget*) data;
+			budget->category = category;
 			success = true;
 			break;
 		}
@@ -96,11 +74,12 @@ void BudgetController::modifyCategory(int id, std::string category)
 void BudgetController::modifyAmount(int id, float amount)
 {
 	bool success = false;
-	for (Budget &budget : controller.vectorT)
+	for (ControllerData* data : controller)
 	{
-		if (budget.id == id)
+		if (data->id == id)
 		{
-			budget.amount = amount;
+			Budget *budget = (Budget*) data;
+			budget->amount = amount;
 			success = true;
 			break;
 		}
@@ -111,42 +90,43 @@ void BudgetController::modifyAmount(int id, float amount)
 
 
 time_t BudgetController::getEffectiveDate(int id){
-	for (Budget budget : controller.vectorT)
+	for (ControllerData* data : controller)
 	{
-		if (budget.id == id)
-			return budget.effectiveDate;
+		if (data->id == id)
+		{
+			Budget *budget = (Budget*) data;
+			return budget->effectiveDate;
+		}
 	}
 
 	throw std::invalid_argument("BudgetController::getEffectiveDate : id " + convertSystemToSTDString(id.ToString()) + " not found");
 }
 std::string BudgetController::getCategory(int id){
-	for (Budget budget : controller.vectorT)
+	for (ControllerData* data : controller)
 	{
-		if (budget.id == id)
-			return budget.category;
+		if (data->id == id)
+		{
+			Budget *budget = (Budget*) data;
+			return budget->category;
+		}
 	}
 	throw std::invalid_argument("BudgetController::getCategory : id " + convertSystemToSTDString(id.ToString()) + " not found");
 }
 float BudgetController::getAmount(int id){
-	for (Budget budget : controller.vectorT)
+	for (ControllerData* data : controller)
 	{
-		if (budget.id == id)
-			return budget.amount;
+		if (data->id == id)
+		{
+			Budget *budget = (Budget*) data;
+			return budget->amount;
+		}
 	}
 	throw std::invalid_argument("BudgetController::getAmount : id " + convertSystemToSTDString(id.ToString()) + " not found");
 }
 
-void BudgetController::load()
-{
-	controller.loadController(controller.fileName);
-}
-void BudgetController::loadBackup()
-{
-	controller.loadController(controller.backupFileName);
-}
 
 std::string BudgetController::getProfileName(){
-	return controller.profileName;
+	return profileName;
 }
 
 
@@ -155,7 +135,57 @@ std::set<std::string> BudgetController::getDistinctCategories()
 	std::set<std::string> categories = std::set<std::string>();
 	for (auto budget : getBudgets())
 	{
-		categories.insert(budget.category);
+		categories.insert(budget->category);
 	}
 	return categories;
+}
+
+ControllerData* BudgetController::parseTokens(std::string str)
+{	
+	std::string delim = "/";
+	std::vector<std::string> tokens;
+	tokens.reserve(Budget::NUMOFMEMBERVARIABLES);
+	unsigned int delimPos = str.find(delim);
+	int start = 0;
+	while (delimPos != std::string::npos)
+	{
+		std::string token = str.substr(start, delimPos - start);
+		start = delimPos + 1;
+		delimPos = str.find(delim, start);
+		tokens.push_back(token);
+	}
+
+	if (tokens.size() != Budget::NUMOFMEMBERVARIABLES)
+	{
+		throw std::runtime_error("BudgetController::parseTokens : Incorrect number of variables in entrys");
+	}
+	// Parse tokens 
+	int id;
+	std::time_t effectiveDate;
+	std::string category;
+	float amount;
+
+	// Format: [ID]/[EffectiveDate]/[Category]/[Amount]
+
+	for (int i = 0; i < Budget::NUMOFMEMBERVARIABLES; i++)
+	{
+		switch (i)
+		{
+		case 0: // id
+			id = atoi(tokens[i].c_str());
+			break;
+		case 1: // effective date
+			effectiveDate = std::stoi(tokens[i]);
+			break;
+		case 2: // category
+			category = tokens[i];
+			break;
+		case 3: // amount
+			amount = std::stof(tokens[i]);
+
+			break;
+		}
+	}
+
+	return new Budget(id, effectiveDate, category, amount);
 }

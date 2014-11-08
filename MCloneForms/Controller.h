@@ -3,8 +3,6 @@
 
 // IMPORTANT
 // DataType of Controller must have following member variables and functions:
-//     int id;
-//     static datatype parseTokens(std::string str);
 
 
 
@@ -15,30 +13,38 @@
 #include <vector>
 #include <fstream>
 
-template <typename T>
+#include "String.h"
+
+#include "ControllerData.h"
+
 class Controller {
 public:
 	Controller(std::string profileName, std::string controllerName, std::string fileName, std::string backupFileName);
+	virtual ~Controller();
 	void save();
 	void autoSave();
-	void add(T t);
-	void remove(int indexToRemove);
+	void addData(ControllerData* data);
+	void remove(int id);
 	bool backupExists();
 	bool deleteBackup();
-	std::vector<T> vectorT;
+	void load();
+	void loadBackup();
+	int generateID();
+	virtual ControllerData* parseTokens(std::string str);
+
+	
+	std::vector<ControllerData*> controller;
 	std::string profileName;
 	std::string fileName;
 	std::string backupFileName;	
-	void loadController( std::string fileName);
-	int generateID();
 
 private:
 	std::string controllerName;
 	bool saveController(std::string fileString);
+	void loadController( std::string fileName);
 
 };
 
-#include "Controller.tcc"
 
 
 
